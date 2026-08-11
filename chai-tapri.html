@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>chai-tapri.wtf — ₹7 ki chai, free ka sukoon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky-top:#0d1330; --sky-bottom:#2a2148;
+    --sodium:#ffb347; --flame:#ff7a2f;
+    --chai:#b5773a; --wood:#4a2f1b;
+    --ink:#f4e9d8; --muted:#b7a98f;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family:'Karla',sans-serif; color:var(--ink);
+    background:linear-gradient(var(--sky-top),var(--sky-bottom) 70%,#160f28);
+    overflow:hidden; user-select:none;
+  }
+  /* ---------- stars ---------- */
+  .star{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:.7;animation:twinkle 3s infinite alternate}
+  @keyframes twinkle{from{opacity:.15}to{opacity:.8}}
+
+  /* ---------- layout ---------- */
+  #scene{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+  header{position:fixed;top:0;left:0;right:0;padding:20px 24px;display:flex;justify-content:space-between;align-items:flex-start;z-index:5}
+  h1{font-family:'Yatra One',cursive;font-size:clamp(26px,5vw,44px);color:var(--sodium);text-shadow:0 0 24px rgba(255,179,71,.35);line-height:1}
+  h1 small{display:block;font-family:'Karla',sans-serif;font-size:13px;font-weight:400;color:var(--muted);letter-spacing:.12em;margin-top:6px;text-transform:uppercase}
+
+  /* ---------- signboard start button ---------- */
+  #startWrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(6,8,20,.72);z-index:20;backdrop-filter:blur(3px);transition:opacity .8s}
+  #startWrap.hide{opacity:0;pointer-events:none}
+  #startBtn{
+    font-family:'Yatra One',cursive;font-size:clamp(22px,4vw,34px);color:#2a1503;
+    background:linear-gradient(#ffd28a,var(--sodium));border:4px solid #7a4a12;border-radius:10px;
+    padding:18px 34px;cursor:pointer;box-shadow:0 0 40px rgba(255,179,71,.5),inset 0 -6px 0 rgba(0,0,0,.15);
+    transform:rotate(-1.5deg);transition:transform .15s;
+  }
+  #startBtn:hover{transform:rotate(-1.5deg) scale(1.04)}
+  #startBtn:focus-visible{outline:3px solid #fff;outline-offset:4px}
+  #startWrap p{position:absolute;bottom:12vh;color:var(--muted);font-size:14px;letter-spacing:.08em}
+
+  /* ---------- the stall ---------- */
+  #stall{position:relative;width:min(720px,94vw);height:min(62vh,520px)}
+  svg{width:100%;height:100%;display:block}
+
+  .bulbGlow{animation:flicker 4.5s infinite}
+  @keyframes flicker{0%,93%,100%{opacity:1}94%{opacity:.55}96%{opacity:.9}97%{opacity:.5}}
+
+  .steam{fill:none;stroke:#e8ddc9;stroke-width:3;stroke-linecap:round;opacity:0;animation:rise 4s infinite}
+  .steam.s2{animation-delay:1.3s}.steam.s3{animation-delay:2.6s}
+  @keyframes rise{
+    0%{opacity:0;transform:translateY(0)}
+    15%{opacity:.55}
+    80%{opacity:.12}
+    100%{opacity:0;transform:translateY(-46px)}
+  }
+  .flame{transform-origin:center bottom;animation:lick .35s infinite alternate}
+  @keyframes lick{from{transform:scaleY(1) scaleX(1)}to{transform:scaleY(1.12) scaleX(.94)}}
+
+  /* ---------- radio panel ---------- */
+  #radioPanel{
+    position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:6;
+    background:#241608;border:2px solid #5a3a18;border-radius:14px;
+    padding:12px 18px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:center;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);max-width:94vw;
+  }
+  #radioPanel .label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .stationBtn{
+    font-family:'Karla',sans-serif;font-weight:700;font-size:13px;color:var(--ink);
+    background:#3a2410;border:1px solid #6a4520;border-radius:8px;padding:8px 14px;cursor:pointer;transition:all .15s;
+  }
+  .stationBtn:hover{background:#4d2f12}
+  .stationBtn.active{background:var(--sodium);color:#2a1503;border-color:var(--sodium);box-shadow:0 0 14px rgba(255,179,71,.5)}
+  .stationBtn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+  #muteBtn{background:none;border:1px solid #6a4520;border-radius:8px;color:var(--ink);padding:8px 12px;cursor:pointer;font-size:15px}
+
+  #tagline{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);color:var(--muted);font-size:13px;letter-spacing:.06em;text-align:center;width:94vw}
+
+  @media (prefers-reduced-motion:reduce){
+    .steam,.flame,.bulbGlow,.star{animation:none}
+  }
+</style>
+</head>
+<body>
+<div id="stars"></div>
+
+<header>
+  <h1>चाय तपरी<small>chai-tapri.wtf · est. every corner of India</small></h1>
+</header>
+
+<div id="scene">
+  <div id="stall">
+    <svg viewBox="0 0 720 520" aria-label="Roadside chai stall at dusk">
+      <!-- lamp post -->
+      <rect x="60" y="120" width="8" height="360" fill="#1b1428"/>
+      <circle cx="64" cy="112" r="14" fill="#ffd28a" class="bulbGlow"/>
+      <circle cx="64" cy="112" r="46" fill="url(#lampGlow)" class="bulbGlow"/>
+      <defs>
+        <radialGradient id="lampGlow"><stop offset="0%" stop-color="#ffb347" stop-opacity=".5"/><stop offset="100%" stop-color="#ffb347" stop-opacity="0"/></radialGradient>
+        <radialGradient id="stallGlow"><stop offset="0%" stop-color="#ff9a3f" stop-opacity=".35"/><stop offset="100%" stop-color="#ff9a3f" stop-opacity="0"/></radialGradient>
+      </defs>
+
+      <!-- warm glow behind stall -->
+      <ellipse cx="400" cy="330" rx="300" ry="200" fill="url(#stallGlow)"/>
+
+      <!-- stall roof (tin sheet) -->
+      <polygon points="180,180 620,180 650,230 150,230" fill="#3b4a5a"/>
+      <polygon points="180,180 620,180 620,190 180,190" fill="#55708a"/>
+      <!-- signboard -->
+      <rect x="250" y="140" width="300" height="46" rx="6" fill="#c8302f" stroke="#7c1c1c" stroke-width="3"/>
+      <text x="400" y="172" text-anchor="middle" font-family="Yatra One" font-size="28" fill="#ffe9b0">RAJU CHAI CENTER</text>
+
+      <!-- posts -->
+      <rect x="170" y="230" width="12" height="230" fill="var(--wood)"/>
+      <rect x="618" y="230" width="12" height="230" fill="var(--wood)"/>
+
+      <!-- counter -->
+      <rect x="200" y="360" width="400" height="26" fill="#6b4423"/>
+      <rect x="200" y="386" width="400" height="80" fill="#513218"/>
+
+      <!-- stove + kettle -->
+      <rect x="300" y="322" width="70" height="38" rx="4" fill="#333"/>
+      <ellipse cx="335" cy="322" rx="26" ry="6" fill="#222"/>
+      <path class="flame" d="M325 320 q4 -14 10 -18 q2 8 8 12 q4 4 -2 8 z" fill="var(--flame)"/>
+      <!-- kettle -->
+      <g>
+        <ellipse cx="335" cy="300" rx="30" ry="20" fill="#9aa3ad"/>
+        <rect x="305" y="280" width="60" height="22" rx="8" fill="#9aa3ad"/>
+        <path d="M365 288 q22 2 20 16" stroke="#9aa3ad" stroke-width="8" fill="none" stroke-linecap="round"/>
+        <path d="M320 276 q15 -10 30 0" stroke="#7d868f" stroke-width="5" fill="none"/>
+      </g>
+      <!-- steam -->
+      <path class="steam"    d="M384 292 q6 -10 -2 -18 q-6 -8 2 -16"/>
+      <path class="steam s2" d="M330 268 q6 -10 -2 -18 q-6 -8 2 -16"/>
+      <path class="steam s3" d="M346 268 q-6 -10 2 -18 q6 -8 -2 -16"/>
+
+      <!-- glass rack -->
+      <g fill="#d8c9a8" opacity=".9">
+        <rect x="430" y="336" width="12" height="20" rx="2"/>
+        <rect x="448" y="336" width="12" height="20" rx="2"/>
+        <rect x="466" y="336" width="12" height="20" rx="2"/>
+        <rect x="484" y="336" width="12" height="20" rx="2"/>
+      </g>
+      <!-- chai in glasses -->
+      <g fill="var(--chai)">
+        <rect x="431" y="344" width="10" height="11" rx="2"/>
+        <rect x="449" y="344" width="10" height="11" rx="2"/>
+        <rect x="467" y="344" width="10" height="11" rx="2"/>
+        <rect x="485" y="344" width="10" height="11" rx="2"/>
+      </g>
+
+      <!-- radio on counter -->
+      <g id="radioBox" style="cursor:pointer">
+        <rect x="530" y="326" width="56" height="34" rx="5" fill="#8a2f24" stroke="#5c1d15" stroke-width="2"/>
+        <circle cx="545" cy="343" r="8" fill="#2b1006"/>
+        <rect x="558" y="334" width="22" height="6" rx="3" fill="#e8c98a"/>
+        <rect x="558" y="345" width="22" height="6" rx="3" fill="#e8c98a"/>
+        <line x1="582" y1="326" x2="596" y2="304" stroke="#ccc" stroke-width="2"/>
+      </g>
+
+      <!-- parle-g jar -->
+      <rect x="230" y="330" width="34" height="30" rx="4" fill="#e9d9b8" opacity=".85"/>
+      <rect x="236" y="338" width="22" height="14" fill="#c8952f"/>
+
+      <!-- bench + uncles (silhouettes) -->
+      <rect x="70" y="440" width="180" height="10" fill="#2b1d10"/>
+      <rect x="84" y="450" width="8" height="26" fill="#2b1d10"/>
+      <rect x="228" y="450" width="8" height="26" fill="#2b1d10"/>
+      <g fill="#141021">
+        <circle cx="120" cy="404" r="13"/>
+        <path d="M104 418 q16 -10 32 0 l4 24 h-40 z"/>
+        <circle cx="185" cy="402" r="13"/>
+        <path d="M169 416 q16 -10 32 0 l4 26 h-40 z"/>
+      </g>
+
+      <!-- ground -->
+      <rect x="0" y="470" width="720" height="50" fill="#161022"/>
+      <ellipse cx="400" cy="474" rx="330" ry="8" fill="#0e0a18"/>
+    </svg>
+  </div>
+</div>
+
+<p id="tagline">kettle on · uncles debating · radio humming · click the glasses for a clink 🥃</p>
+
+<div id="radioPanel" role="group" aria-label="Radio stations">
+  <span class="label">📻 Station</span>
+  <button class="stationBtn active" data-st="0">Shaam FM</button>
+  <button class="stationBtn" data-st="1">Raat Raag</button>
+  <button class="stationBtn" data-st="2">Sirf Baarish</button>
+  <button id="muteBtn" aria-label="Mute">🔊</button>
+</div>
+
+<div id="startWrap">
+  <button id="startBtn">☕ चाय चालू करो</button>
+  <p>headphones on · sound experience</p>
+</div>
+
+<script>
+/* ================= stars ================= */
+const starBox=document.getElementById('stars');
+for(let i=0;i<70;i++){const s=document.createElement('div');s.className='star';
+  s.style.left=Math.random()*100+'vw';s.style.top=Math.random()*45+'vh';
+  s.style.animationDelay=(Math.random()*3)+'s';starBox.appendChild(s);}
+
+/* ================= audio engine ================= */
+let AC=null, master=null, muted=false, station=0, melodyTimer=null, radioChain=null;
+
+function ctx(){ if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+  master=AC.createGain(); master.gain.value=.9; master.connect(AC.destination);} return AC; }
+
+function noiseBuffer(sec=2){const a=ctx();const b=a.createBuffer(1,a.sampleRate*sec,a.sampleRate);
+  const d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b;}
+
+/* ---- layer 1: kettle hiss (filtered noise, slowly breathing) ---- */
+function startHiss(){
+  const a=ctx(),src=a.createBufferSource();src.buffer=noiseBuffer(3);src.loop=true;
+  const bp=a.createBiquadFilter();bp.type='bandpass';bp.frequency.value=5200;bp.Q.value=.8;
+  const g=a.createGain();g.gain.value=.035;
+  const lfo=a.createOscillator(),lg=a.createGain();lfo.frequency.value=.13;lg.gain.value=.015;
+  lfo.connect(lg);lg.connect(g.gain);lfo.start();
+  src.connect(bp);bp.connect(g);g.connect(master);src.start();
+}
+/* ---- layer 2: night traffic / city hum ---- */
+function startHum(){
+  const a=ctx(),src=a.createBufferSource();src.buffer=noiseBuffer(4);src.loop=true;
+  const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=190;
+  const g=a.createGain();g.gain.value=.10;
+  src.connect(lp);lp.connect(g);g.connect(master);src.start();
+  /* occasional passing scooter */
+  setInterval(()=>{ if(muted||Math.random()<.5)return;
+    const t=a.currentTime,o=a.createOscillator(),og=a.createGain();
+    o.type='sawtooth';o.frequency.setValueAtTime(70,t);
+    o.frequency.linearRampToValueAtTime(130,t+1.4);o.frequency.linearRampToValueAtTime(60,t+3);
+    og.gain.setValueAtTime(0,t);og.gain.linearRampToValueAtTime(.03,t+1.4);og.gain.linearRampToValueAtTime(0,t+3);
+    const lp2=a.createBiquadFilter();lp2.type='lowpass';lp2.frequency.value=400;
+    o.connect(lp2);lp2.connect(og);og.connect(master);o.start(t);o.stop(t+3.1);
+  },9000);
+}
+/* ---- layer 3: crickets ---- */
+function startCrickets(){
+  const a=ctx();
+  setInterval(()=>{ if(muted)return;
+    const t=a.currentTime;
+    for(let i=0;i<5;i++){const o=a.createOscillator(),g=a.createGain();
+      o.type='sine';o.frequency.value=4200+Math.random()*300;
+      const st=t+i*.09;g.gain.setValueAtTime(0,st);
+      g.gain.linearRampToValueAtTime(.012,st+.02);g.gain.linearRampToValueAtTime(0,st+.06);
+      o.connect(g);g.connect(master);o.start(st);o.stop(st+.08);}
+  },2400);
+}
+/* ---- glass clink ---- */
+function clink(){
+  const a=ctx(),t=a.currentTime;
+  [1900,2600].forEach((f,i)=>{const o=a.createOscillator(),g=a.createGain();
+    o.type='sine';o.frequency.value=f*(1+Math.random()*.04);
+    g.gain.setValueAtTime(.09/(i+1),t);g.gain.exponentialRampToValueAtTime(.0001,t+.35);
+    o.connect(g);g.connect(master);o.start(t);o.stop(t+.4);});
+}
+/* ---- uncle murmur (random low burbles) ---- */
+function startUncles(){
+  const a=ctx();
+  setInterval(()=>{ if(muted||Math.random()<.4)return;
+    const t=a.currentTime,n=3+Math.floor(Math.random()*4);
+    for(let i=0;i<n;i++){const o=a.createOscillator(),g=a.createGain();
+      o.type='triangle';o.frequency.value=95+Math.random()*60;
+      const st=t+i*.16;g.gain.setValueAtTime(0,st);
+      g.gain.linearRampToValueAtTime(.02,st+.05);g.gain.linearRampToValueAtTime(0,st+.15);
+      const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=500;
+      o.connect(lp);lp.connect(g);g.connect(master);o.start(st);o.stop(st+.16);}
+  },5200);
+}
+
+/* ---- the radio: original lo-fi melody through a "small speaker" filter ---- */
+const STATIONS=[
+  {name:'Shaam FM',  scale:[0,2,4,7,9],   root:220, tempo:340, wave:'triangle'},   /* major pentatonic, warm */
+  {name:'Raat Raag', scale:[0,1,5,7,8],   root:196, tempo:520, wave:'sine'},       /* bhairavi-ish, slow */
+  {name:'Sirf Baarish',scale:null}                                                  /* rain only */
+];
+function buildRadioChain(){
+  const a=ctx();
+  const bp=a.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1100;bp.Q.value=.7;
+  const dist=a.createWaveShaper();const c=new Float32Array(256);
+  for(let i=0;i<256;i++){const x=i/128-1;c[i]=Math.tanh(2.4*x);}dist.curve=c;
+  const g=a.createGain();g.gain.value=.14;
+  bp.connect(dist);dist.connect(g);g.connect(master);
+  /* static crackle bed */
+  const src=a.createBufferSource();src.buffer=noiseBuffer(2);src.loop=true;
+  const hp=a.createBiquadFilter();hp.type='highpass';hp.frequency.value=3000;
+  const ng=a.createGain();ng.gain.value=.006;src.connect(hp);hp.connect(ng);ng.connect(master);src.start();
+  return bp;
+}
+function playStation(idx){
+  const a=ctx(); station=idx;
+  if(melodyTimer){clearTimeout(melodyTimer);melodyTimer=null;}
+  if(!radioChain) radioChain=buildRadioChain();
+  const st=STATIONS[idx];
+  if(!st.scale){ startRain(); return; } stopRain();
+  let step=0;
+  const loop=()=>{
+    if(station!==idx||muted){melodyTimer=setTimeout(loop,st.tempo);return;}
+    const t=a.currentTime;
+    /* melody note */
+    if(Math.random()>.18){
+      const deg=st.scale[Math.floor(Math.random()*st.scale.length)];
+      const oct=Math.random()<.25?2:1;
+      const f=st.root*Math.pow(2,deg/12)*oct;
+      const o=a.createOscillator(),g=a.createGain();
+      o.type=st.wave;o.frequency.value=f;
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.5,t+.03);
+      g.gain.exponentialRampToValueAtTime(.001,t+st.tempo/1000*1.8);
+      o.connect(g);g.connect(radioChain);o.start(t);o.stop(t+st.tempo/1000*2);
+    }
+    /* tabla-ish thump on the beat */
+    if(step%4===0){
+      const o=a.createOscillator(),g=a.createGain();
+      o.type='sine';o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(52,t+.12);
+      g.gain.setValueAtTime(.35,t);g.gain.exponentialRampToValueAtTime(.001,t+.16);
+      o.connect(g);g.connect(radioChain);o.start(t);o.stop(t+.2);
+    }
+    step++; melodyTimer=setTimeout(loop,st.tempo);
+  };
+  loop();
+}
+/* ---- rain station ---- */
+let rainNodes=null;
+function startRain(){ if(rainNodes)return;
+  const a=ctx(),src=a.createBufferSource();src.buffer=noiseBuffer(3);src.loop=true;
+  const bp=a.createBiquadFilter();bp.type='bandpass';bp.frequency.value=2400;bp.Q.value=.4;
+  const g=a.createGain();g.gain.value=.12;
+  src.connect(bp);bp.connect(g);g.connect(master);src.start();
+  rainNodes={src,g};
+}
+function stopRain(){ if(rainNodes){try{rainNodes.src.stop()}catch(e){} rainNodes=null;} }
+
+/* ================= UI wiring ================= */
+document.getElementById('startBtn').addEventListener('click',()=>{
+  ctx().resume();
+  startHiss();startHum();startCrickets();startUncles();playStation(0);
+  document.getElementById('startWrap').classList.add('hide');
+  /* random background clinks */
+  setInterval(()=>{if(!muted&&Math.random()<.4)clink();},7000);
+});
+document.querySelectorAll('.stationBtn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.stationBtn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); playStation(+b.dataset.st);
+}));
+document.getElementById('muteBtn').addEventListener('click',e=>{
+  muted=!muted; if(master)master.gain.value=muted?0:.9;
+  e.target.textContent=muted?'🔇':'🔊';
+});
+document.getElementById('stall').addEventListener('click',()=>{ if(AC)clink(); });
+</script>
+</body>
+</html>

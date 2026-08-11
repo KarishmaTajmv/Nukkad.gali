@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anar — paas mat jao</title>
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Karla',sans-serif;background:#0a0d1a;color:var(--cream);min-height:100vh;
+display:flex;flex-direction:column;align-items:center;padding:22px 12px 40px;overflow:hidden}
+a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:6px;z-index:10}
+.brand{background:var(--red);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;transform:rotate(-1deg);
+box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px;z-index:10}
+.brand h1{font-family:'Yatra One',cursive;font-size:clamp(24px,5vw,38px);text-shadow:2px 2px 0 var(--enamel)}
+.sub{color:#8a93b8;font-size:12px;margin-bottom:10px;z-index:10}
+#yard{position:relative;width:min(640px,96vw);height:min(56vh,420px);border-radius:14px;overflow:hidden;
+background:linear-gradient(#10142a,#0d1020 70%,#1a1408 70%);box-shadow:0 16px 44px rgba(0,0,0,.6);cursor:crosshair}
+#anar{position:absolute;left:50%;bottom:26%;transform:translateX(-50%);font-size:40px;user-select:none;z-index:3}
+#sparkArea{position:absolute;left:50%;bottom:calc(26% + 36px);transform:translateX(-50%);width:4px;z-index:2}
+#you{position:absolute;font-size:36px;bottom:22%;left:8%;transition:left .3s;z-index:4;user-select:none}
+#agarbatti{position:absolute;font-size:22px;display:none;z-index:5;transform:rotate(-40deg)}
+#msg{margin-top:12px;min-height:40px;font-size:14px;color:#c9b790;font-style:italic;text-align:center;max-width:440px;z-index:10}
+#hud{margin-top:6px;font-size:12px;color:#6a7288}#hud b{color:var(--haldi);font-family:'Yatra One';font-size:17px}
+button{margin-top:12px;font-family:'Yatra One';font-size:18px;background:var(--haldi);color:var(--dark);
+border:3px solid var(--red);border-radius:10px;padding:11px 26px;cursor:pointer;box-shadow:4px 5px 0 rgba(0,0,0,.5);z-index:10}
+button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.spark{position:absolute;width:4px;height:4px;border-radius:50%;pointer-events:none;z-index:6}
+#flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 70%,#fff8,transparent 60%);opacity:0;pointer-events:none;z-index:7}
+</style></head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>अनार</h1></div>
+<p class="sub">ANAR · Diwali ki raat · jal gaya? bujha? PAAS MAT JAO. kabhi mat jao.</p>
+
+<div id="yard">
+  <div id="anar">🏺</div>
+  <div id="you">🧍</div>
+  <div id="agarbatti">🕯️</div>
+  <div id="flash"></div>
+</div>
+<p id="msg">agarbatti leke jao, jalao, aur BHAGO. baaki anar ki marzi.</p>
+<p id="hud">safe anars: <b id="safe">0</b> · "paas gaya" moments: <b id="close">0</b></p>
+<button id="actBtn">🕯️ jalane jao</button>
+
+<script>
+const yard=document.getElementById('yard'),anar=document.getElementById('anar'),you=document.getElementById('you');
+let phase='idle',safe=0,closeCalls=0,sparkT=null,fizzled=false;
+let AC=null,master=null,crackleGain=null;
+function ctx(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+master=AC.createGain();master.gain.value=.8;master.connect(AC.destination);}return AC;}
+function noise(sec=1){const a=ctx(),b=a.createBuffer(1,a.sampleRate*sec,a.sampleRate),d=b.getChannelData(0);
+for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b;}
+function crackle(vol){const a=ctx();
+if(!crackleGain){const src=a.createBufferSource();src.buffer=noise(2);src.loop=true;
+const hp=a.createBiquadFilter();hp.type='highpass';hp.frequency.value=3000;
+crackleGain=a.createGain();crackleGain.gain.value=0;
+src.connect(hp);hp.connect(crackleGain);crackleGain.connect(master);src.start();}
+crackleGain.gain.setTargetAtTime(vol,a.currentTime,.1);}
+function whoosh(){const a=ctx(),t=a.currentTime,src=a.createBufferSource();src.buffer=noise(1.5);
+const bp=a.createBiquadFilter();bp.type='bandpass';bp.Q.value=1;
+bp.frequency.setValueAtTime(400,t);bp.frequency.exponentialRampToValueAtTime(4000,t+.8);
+const g=a.createGain();g.gain.setValueAtTime(.35,t);g.gain.exponentialRampToValueAtTime(.001,t+1.4);
+src.connect(bp);bp.connect(g);g.connect(master);src.start(t);}
+function say(t){document.getElementById('msg').textContent=t;}
+function sparks(intense,dur){
+  const r=yard.getBoundingClientRect();
+  const cx=r.width/2,cy=r.height*.68;
+  const colors=['#f2b31c','#ff7a2f','#fff2c8','#ff5e5b'];
+  const iv=setInterval(()=>{
+    for(let i=0;i<(intense?10:2);i++){
+      const s=document.createElement('div');s.className='spark';
+      s.style.background=colors[Math.floor(Math.random()*4)];
+      s.style.left=cx+'px';s.style.top=cy+'px';
+      yard.appendChild(s);
+      const ang=-Math.PI/2+(Math.random()-.5)*(intense?2.2:.7);
+      const sp=intense?4+Math.random()*7:1+Math.random()*2;
+      let px=cx,py=cy,vx=Math.cos(ang)*sp,vy=Math.sin(ang)*sp,life=0;
+      const fly=setInterval(()=>{
+        px+=vx;py+=vy;vy+=.25;life++;
+        s.style.left=px+'px';s.style.top=py+'px';
+        s.style.opacity=1-life/30;
+        if(life>30){clearInterval(fly);s.remove();}
+      },30);
+    }
+  },intense?40:200);
+  setTimeout(()=>clearInterval(iv),dur);
+  return iv;
+}
+document.getElementById('actBtn').addEventListener('click',function(){
+  const a=ctx();a.resume();
+  if(phase!=='idle')return;
+  phase='approaching';fizzled=false;
+  this.style.display='none';
+  const ag=document.getElementById('agarbatti');
+  say('dheere dheere... haath aage... baaki sab peeche...');
+  you.style.left='38%';ag.style.display='block';
+  ag.style.left='46%';ag.style.bottom='28%';
+  setTimeout(()=>{
+    say('jal gayi!! BHAGO BHAGO BHAGO!!');
+    you.style.left='6%';ag.style.display='none';
+    phase='lit';
+    /* small sparks begin */
+    crackle(.04);sparks(false,2000);
+    setTimeout(()=>{
+      /* THE FIZZLE — the trap */
+      crackle(.005);
+      say('...ruk gaya? band ho gaya kya? 🤔 (PAAS MAT JAO. button bhi aayega — MAT DABANA.)');
+      fizzled=true;phase='fizzle';
+      const trap=document.createElement('button');
+      trap.textContent='🚶 dekh ke aata hoon';
+      trap.id='trapBtn';
+      document.body.insertBefore(trap,document.getElementById('hud').nextSibling);
+      const fuse=2500+Math.random()*4500;
+      const eruptT=setTimeout(()=>{erupt(false);trap.remove();},fuse);
+      trap.addEventListener('click',()=>{
+        clearTimeout(eruptT);
+        you.style.left='40%';
+        say('nahi nahi nahi—');
+        setTimeout(()=>{erupt(true);trap.remove();},600+Math.random()*900);
+      });
+    },1700+Math.random()*1500);
+  },1800);
+});
+function erupt(youWereNear){
+  phase='erupting';
+  whoosh();crackle(.15);
+  document.getElementById('flash').style.opacity=.9;
+  setTimeout(()=>document.getElementById('flash').style.opacity=0,300);
+  sparks(true,3800);
+  if(youWereNear){
+    closeCalls++;you.style.left='2%';you.textContent='🏃';
+    say('DEKHA?! ISILIYE BOLA THA!! bhaag ke bache. mohalle ne dekh liya. Diwali ki asli parampara nibha di aapne.');
+  }else{
+    safe++;
+    say('PHOOT GAYA!! 🎆 aur aap door the. dimaag jeet gaya, parampara haar gayi.');
+  }
+  document.getElementById('safe').textContent=safe;
+  document.getElementById('close').textContent=closeCalls;
+  setTimeout(()=>{
+    crackle(0);phase='idle';you.textContent='🧍';
+    const b=document.getElementById('actBtn');
+    b.style.display='inline-block';b.textContent='🕯️ agla anar';
+  },4200);
+}
+</script>
+</body></html>

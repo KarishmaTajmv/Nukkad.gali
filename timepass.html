@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timepass Certificate — sarkari proof</title>
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+background-image:radial-gradient(circle at 50% -10%,#2a2115 0%,var(--dark) 60%);
+display:flex;flex-direction:column;align-items:center;padding:24px 14px 50px}
+a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:8px}
+.brand{background:var(--enamel);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;transform:rotate(-1deg);
+box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+.brand h1{font-family:'Yatra One',cursive;font-size:clamp(22px,4.6vw,36px);text-shadow:2px 2px 0 var(--red)}
+.sub{color:#c9b790;font-size:12px;margin-bottom:18px;text-align:center}
+#panel{width:min(600px,96vw);display:flex;flex-direction:column;gap:12px}
+canvas{width:100%;border-radius:6px;box-shadow:0 16px 44px rgba(0,0,0,.55)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+input,select{flex:1;min-width:150px;font-family:'Karla';font-size:15px;font-weight:700;padding:10px 12px;border-radius:8px;
+border:2px solid #3a2f1c;background:#241c10;color:var(--cream);outline:none}
+input:focus{border-color:var(--haldi)}
+button{font-family:'Karla';font-weight:700;font-size:15px;border:none;border-radius:10px;padding:13px 20px;cursor:pointer;background:var(--red);color:var(--cream);flex:1}
+button:hover{transform:translateY(-2px)}
+button:focus-visible{outline:3px solid var(--cream);outline-offset:2px}
+</style></head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>टाइमपास प्रमाणपत्र</h1></div>
+<p class="sub">TIMEPASS CERTIFICATE · mehnat ka nahi, aaram ka saboot · frame karne layak</p>
+
+<div id="panel">
+  <canvas id="cv" width="1100" height="800"></canvas>
+  <div class="row">
+    <input id="f_name" maxlength="18" value="Bunty" aria-label="Name" placeholder="kiska certificate?">
+    <select id="f_hrs" aria-label="Hours wasted">
+      <option value="2">2 ghante (beginner)</option>
+      <option value="5" selected>5 ghante (dedicated)</option>
+      <option value="9">9 ghante (full shift)</option>
+      <option value="14">14 ghante (Olympiad level)</option>
+    </select>
+  </div>
+  <div class="row">
+    <select id="f_act" aria-label="Activity">
+      <option>reels scroll karna</option>
+      <option>chhat pe tehalna</option>
+      <option>"5 minute" ki neend</option>
+      <option>fridge kholna-band karna</option>
+      <option>purani chats padhna</option>
+      <option>plan banake cancel karna</option>
+    </select>
+    <button id="dlBtn">⬇️ CERTIFICATE PNG</button>
+  </div>
+</div>
+
+<script>
+const cv=document.getElementById('cv'),x=cv.getContext('2d');
+function v(id){return document.getElementById(id).value;}
+function draw(){
+  const n=v('f_name')||'Bunty',hrs=v('f_hrs'),act=v('f_act');
+  x.fillStyle='#f2ecd8';x.fillRect(0,0,1100,800);
+  /* fancy border */
+  x.strokeStyle='#12409e';x.lineWidth=12;x.strokeRect(28,28,1044,744);
+  x.strokeStyle='#c8952f';x.lineWidth=3;x.strokeRect(48,48,1004,704);
+  x.strokeStyle='#c8952f';x.lineWidth=1;
+  for(let i=0;i<1100;i+=22){x.beginPath();x.moveTo(i,40);x.lineTo(i+11,48);x.stroke();
+    x.beginPath();x.moveTo(i,760);x.lineTo(i+11,752);x.stroke();}
+  x.textAlign='center';
+  x.font='26px Karla';x.fillStyle='#6b5b3a';
+  x.fillText('BHARAT TIMEPASS AAYOG · MOHALLA SHAKHA, NUKKAD',550,110);
+  x.font='68px "Yatra One"';x.fillStyle='#d5342b';
+  x.fillText('टाइमपास प्रमाणपत्र',550,196);
+  x.font='24px Karla';x.fillStyle='#17120c';
+  x.fillText('Yeh pramanit kiya jaata hai ki',550,268);
+  x.font='58px "Yatra One"';x.fillStyle='#12409e';
+  x.fillText(n,550,340);
+  x.font='24px Karla';x.fillStyle='#17120c';
+  x.fillText('ne aaj poore '+hrs+' ghante nishtha aur samarpan ke saath',550,398);
+  x.font='bold 32px Karla';x.fillStyle='#c8302f';
+  x.fillText('"'+act+'"',550,448);
+  x.font='24px Karla';x.fillStyle='#17120c';
+  x.fillText('mein safaltapoorvak vyateet kiye. Is dauraan koi bhi',550,500);
+  x.fillText('utpadak kaarya nahi hua — yeh ek uplabdhi hai.',550,536);
+  x.font='bold 22px Karla';x.fillStyle='#1b7a3d';
+  x.fillText('GRADE: A+ (Aaram Plus) · Serial: TP-'+Math.floor(10000+Math.random()*89999),550,600);
+  /* stamp */
+  x.save();x.translate(880,660);x.rotate(-.18);
+  x.strokeStyle='#7a2f8c';x.lineWidth=5;x.beginPath();x.arc(0,0,62,0,7);x.stroke();
+  x.beginPath();x.arc(0,0,46,0,7);x.stroke();
+  x.fillStyle='#7a2f8c';x.font='bold 15px Karla';
+  x.fillText('OFFICIAL',0,-10);x.fillText('TIMEPASS',0,8);x.fillText('MUHAR',0,26);x.restore();
+  /* signature */
+  x.strokeStyle='#12409e';x.lineWidth=3;x.beginPath();
+  x.moveTo(160,680);x.bezierCurveTo(200,640,240,720,280,670);x.bezierCurveTo(310,640,330,700,380,660);x.stroke();
+  x.font='16px Karla';x.fillStyle='#333';
+  x.fillText('Adhyaksh, Timepass Aayog (khud bhi timepass kar rahe the)',300,712);
+  x.font='15px Karla';x.fillStyle='#8a7750';
+  x.fillText('yeh certificate kisi bhi interview mein maanya nahi hai. par hona chahiye. · nukkad press',550,744);
+}
+['f_name','f_hrs','f_act'].forEach(id=>document.getElementById(id).addEventListener('input',draw));
+document.getElementById('dlBtn').addEventListener('click',()=>{
+  const a=document.createElement('a');a.download='timepass-certificate.png';a.href=cv.toDataURL('image/png');a.click();});
+if(document.fonts&&document.fonts.load){
+  Promise.all([document.fonts.load('68px "Yatra One"'),document.fonts.load('24px Karla')]).then(draw).catch(draw);
+  setTimeout(draw,1200);}else draw();
+</script>
+</body></html>

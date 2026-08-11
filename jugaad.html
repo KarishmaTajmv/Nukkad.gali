@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jugaad — har samasya ka desi hal</title>
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+    background-image:radial-gradient(circle at 50% -10%,#2a2115 0%,var(--dark) 60%);
+    display:flex;flex-direction:column;align-items:center;padding:26px 14px 60px}
+  a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:8px}
+  .brand{background:var(--haldi);border:4px solid var(--enamel);border-radius:6px;padding:8px 26px;transform:rotate(-1deg);
+    box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(26px,5vw,40px);color:var(--dark);text-shadow:2px 2px 0 rgba(255,255,255,.4)}
+  .sub{color:#c9b790;font-size:12px;margin-bottom:20px;text-align:center}
+  #panel{width:min(560px,96vw);display:flex;flex-direction:column;gap:12px}
+  input{width:100%;font-family:'Karla';font-size:16px;font-weight:700;padding:13px 15px;border-radius:10px;
+    border:3px solid var(--haldi);background:#241c10;color:var(--cream);outline:none}
+  input::placeholder{color:#8a7750;font-weight:400}
+  button{font-family:'Yatra One',cursive;font-size:19px;background:var(--red);color:var(--cream);
+    border:3px solid var(--haldi);border-radius:10px;padding:13px;cursor:pointer;box-shadow:4px 5px 0 rgba(0,0,0,.5)}
+  button:hover{transform:translateY(-2px)}
+  button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+  #card{display:none;background:#fdf6e3;color:#26364a;border-radius:10px;padding:24px;box-shadow:0 14px 40px rgba(0,0,0,.5);
+    border-top:8px solid var(--haldi)}
+  #card h2{font-family:'Yatra One',cursive;color:var(--red);font-size:22px;margin-bottom:4px}
+  #card .prob{font-size:13px;color:#6b5b3a;font-style:italic;margin-bottom:14px}
+  #steps{font-size:16px;line-height:1.8}
+  #steps div{padding-left:26px;position:relative;margin-bottom:8px}
+  #steps div::before{content:'▸';position:absolute;left:4px;color:var(--red);font-weight:700}
+  #meta{margin-top:16px;padding-top:12px;border-top:2px dashed #d8cfae;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:13px}
+  #meta b{color:var(--enamel)}
+  #copyBtn{background:var(--enamel);font-family:'Karla';font-weight:700;font-size:14px;padding:10px}
+  .note{font-size:11px;color:#8a7750;text-align:center}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>जुगाड़</h1></div>
+<p class="sub">JUGAAD · engineering se pehle jugaadneering aayi thi · ISO 420 certified</p>
+
+<div id="panel">
+  <input id="prob" maxlength="80" placeholder="samasya likho... (e.g. 'fan bahut awaaz karta hai')" aria-label="Your problem">
+  <button id="genBtn">🔧 JUGAAD NIKALO</button>
+  <div id="card">
+    <h2 id="title"></h2>
+    <p class="prob" id="probEcho"></p>
+    <div id="steps"></div>
+    <div id="meta">
+      <span>saman lagega: <b id="cost"></b></span>
+      <span>confidence: <b id="conf"></b></span>
+      <span>warranty: <b>dekh lo bhai</b></span>
+    </div>
+  </div>
+  <button id="copyBtn" style="display:none">📋 jugaad copy karo</button>
+  <p class="note">chetavani: kuch jugaad sirf bhavnatmak roop se kaam karte hain</p>
+</div>
+
+<script>
+const MATERIALS=['purani chappal','rubber band (akhbaar wala)','M-Seal','Fevi Kwik','saree ka faal','cello tape (aadha khatam)','eent (aadhi)','nariyal ki rassi','5 rupaye ka sikka','purana toothbrush','plastic ki balti (haldi ke daag wali)','shampoo ka khali pouch','cycle ki tube','clutch wire','dupatta pin','TV ka purana remote (bina battery)'];
+const TECHNIQUES=['ko kass ke bandho','ko neeche fasa do','se weight bana ke latka do','ko beech mein thoons do','se support de do','ko garam karke chipka do','ko ulta karke rakh do','se lever bana lo','ko double karke lagao','se hawa band kar do'];
+const STEP3=['Phir do baar thok do — pyaar se, par confidence ke saath.','Phir ek baar hila ke check karo. Hile toh aur kass do.','Phir uspe "touch mat karo" ka kagaz chipka do. Yeh asli lock hai.','Phir sabko bata do "theek kar diya". Bolne se cheezein theek rehti hain.','Phir 24 ghante ke liye us taraf dekho mat. Jugaad ko settle hone do.'];
+const TITLES=['PATENT-PENDING JUGAAD','GHARELU NUSKHA #','MOHALLA-APPROVED HAL','DADAJI TECHNIQUE','ENGINEERING (DESI EDITION)'];
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+let lastText='';
+document.getElementById('genBtn').addEventListener('click',()=>{
+  const p=document.getElementById('prob').value.trim()||'zindagi hil rahi hai';
+  const m1=pick(MATERIALS);let m2=pick(MATERIALS);while(m2===m1)m2=pick(MATERIALS);
+  const t=pick(TECHNIQUES),s3=pick(STEP3);
+  const conf=(77+Math.random()*22).toFixed(1)+'%';
+  const cost='₹'+[0,5,10,20][Math.floor(Math.random()*4)]+' (sab ghar mein hai)';
+  const title=pick(TITLES)+(Math.random()<.4?' '+Math.floor(Math.random()*900+100):'');
+  const steps=[
+    `Sabse pehle ${m1} lo. Har ghar mein hota hai. Nahi hai toh padosi se lo — wapas mat karna, yahi parampara hai.`,
+    `Ab ${m1} ${t}. Agar fit nahi ho raha toh ${m2} ka use karke fit karao. Zor lagana allowed hai.`,
+    s3
+  ];
+  document.getElementById('title').textContent=title;
+  document.getElementById('probEcho').textContent='samasya: "'+p+'"';
+  document.getElementById('steps').innerHTML=steps.map(s=>'<div>'+s+'</div>').join('');
+  document.getElementById('cost').textContent=cost;
+  document.getElementById('conf').textContent=conf;
+  document.getElementById('card').style.display='block';
+  document.getElementById('copyBtn').style.display='block';
+  lastText=`🔧 JUGAAD for "${p}":\n`+steps.map((s,i)=>(i+1)+'. '+s).join('\n')+`\nConfidence: ${conf} · Warranty: dekh lo bhai`;
+});
+document.getElementById('prob').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('genBtn').click();});
+document.getElementById('copyBtn').addEventListener('click',function(){
+  navigator.clipboard?.writeText(lastText).then(()=>{
+    this.textContent='✅ copied!';setTimeout(()=>this.textContent='📋 jugaad copy karo',1500);});
+});
+</script>
+</body>
+</html>

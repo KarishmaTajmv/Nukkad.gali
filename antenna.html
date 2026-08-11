@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antenna — haan haan... AA GAYA... nahi gaya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:#101830;color:var(--cream);min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;padding:22px 14px 50px}
+  a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:6px}
+  .brand{background:var(--enamel);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;
+    transform:rotate(-1deg);box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(26px,5vw,40px);text-shadow:2px 2px 0 var(--red)}
+  .sub{color:#9db0d8;font-size:12px;margin-bottom:16px;text-align:center}
+
+  #layout{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+
+  /* the TV downstairs */
+  #tvWrap{text-align:center}
+  #tv{width:min(320px,88vw);background:#3a2f1c;border-radius:14px;padding:14px;box-shadow:0 14px 40px rgba(0,0,0,.55)}
+  canvas{width:100%;border-radius:6px;background:#000;display:block}
+  #tvLbl{margin-top:8px;font-size:11px;letter-spacing:.2em;color:#8a7750}
+  #family{margin-top:10px;min-height:52px;width:min(320px,88vw)}
+  .shout{font-family:'Yatra One',cursive;font-size:17px;color:var(--haldi);animation:pop .2s}
+  @keyframes pop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+
+  /* the roof */
+  #roofWrap{text-align:center}
+  #roof{width:min(300px,88vw);height:300px;position:relative;background:linear-gradient(#1a2340 60%,#3a2f1c 60%);
+    border-radius:14px;overflow:hidden;box-shadow:0 14px 40px rgba(0,0,0,.55)}
+  #roof .star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:.7}
+  #mast{position:absolute;bottom:60px;left:50%;width:6px;height:110px;background:#666;transform:translateX(-50%)}
+  #dish{position:absolute;bottom:158px;left:50%;transform-origin:50% 100%;transform:translateX(-50%) rotate(0deg);transition:transform .1s}
+  #dish svg{display:block}
+  #dial{margin-top:12px;width:min(300px,88vw)}
+  #dial input{width:100%;accent-color:var(--red)}
+  #dial label{font-size:11px;letter-spacing:.15em;color:#8a7750;text-transform:uppercase}
+  #signalBar{height:14px;border:2px solid #3a2f1c;border-radius:8px;background:#0d1226;overflow:hidden;margin-top:8px}
+  #signalFill{height:100%;width:0%;background:linear-gradient(90deg,var(--red),var(--haldi),#2e9c5a);transition:width .2s}
+  #stats{margin-top:10px;font-size:12px;color:#8a7750}
+  #stats b{color:var(--haldi)}
+  button{font-family:'Yatra One',cursive;font-size:18px;background:var(--red);color:var(--cream);
+    border:3px solid var(--haldi);border-radius:10px;padding:11px 26px;cursor:pointer;box-shadow:4px 5px 0 rgba(0,0,0,.5);margin-top:12px}
+  button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>एंटीना</h1></div>
+<p class="sub">ANTENNA · tum chhat pe ho · neeche pura parivaar Chitrahaar ka intezaar kar raha hai</p>
+
+<div id="layout">
+  <div id="roofWrap">
+    <div id="roof">
+      <div id="mast"></div>
+      <div id="dish">
+        <svg width="90" height="60" viewBox="0 0 90 60">
+          <line x1="45" y1="58" x2="45" y2="20" stroke="#999" stroke-width="4"/>
+          <line x1="5" y1="8" x2="85" y2="8" stroke="#bbb" stroke-width="3"/>
+          <line x1="12" y1="20" x2="78" y2="20" stroke="#bbb" stroke-width="3"/>
+          <line x1="45" y1="8" x2="45" y2="20" stroke="#bbb" stroke-width="3"/>
+        </svg>
+      </div>
+    </div>
+    <div id="dial">
+      <label>antenna ghumao (dheere... DHEERE)</label>
+      <input type="range" id="angle" min="0" max="360" value="180" step="0.5" aria-label="Antenna angle">
+      <div id="signalBar"><div id="signalFill"></div></div>
+    </div>
+    <button id="startBtn">📺 TV chalao</button>
+  </div>
+
+  <div id="tvWrap">
+    <div id="tv"><canvas id="screen" width="300" height="220"></canvas><div id="tvLbl">WELTRON DELUXE · Mega Bass</div></div>
+    <div id="family" aria-live="polite"></div>
+    <p id="stats">perfect signal streak: <b id="streak">0s</b> · best: <b id="best">0s</b></p>
+  </div>
+</div>
+
+<script>
+const cvs=document.getElementById('screen'),g=cvs.getContext('2d');
+let sweet=Math.random()*360,angle=180,running=false,streak=0,best=0,driftT=0;
+let AC=null,master=null,staticGain=null,toneGain=null;
+const SHOUTS_GOOD=["HAAN HAAN AA GAYA!! WAHIN ROKO!!","AA GAYA AA GAYA!! HILNA MAT!!","PERFECT!! HAATH MAT HATANA!!"];
+const SHOUTS_CLOSE=["thoda sa aur... THODA SA...","haan haan aa raha hai... aa raha hai...","bas bas... halka sa ghumao..."];
+const SHOUTS_BAD=["NAHI GAYA!! WAPAS GHUMAO!!","arre kya kar diya!! sab jhilmil ho gaya!!","ulta ghuma diya!! ULTA!!"];
+const SHOUTS_LOST=["chala gaya... 😭 phir se karo","Chitrahaar shuru hone wala hai JALDI!!","papa uthne wale hain sofa se. situation serious hai."];
+
+function ctx(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+  master=AC.createGain();master.gain.value=.8;master.connect(AC.destination);}return AC;}
+function audioSetup(){
+  const a=ctx();
+  /* static */
+  const b=a.createBuffer(1,a.sampleRate*2,a.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  const src=a.createBufferSource();src.buffer=b;src.loop=true;
+  staticGain=a.createGain();staticGain.gain.value=.08;
+  src.connect(staticGain);staticGain.connect(master);src.start();
+  /* the show's music: simple melody bus */
+  toneGain=a.createGain();toneGain.gain.value=0;
+  const bp=a.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1200;bp.Q.value=.7;
+  toneGain.connect(bp);bp.connect(master);
+  melodyLoop();
+}
+function melodyLoop(){
+  const a=ctx(),t=a.currentTime,scale=[0,2,4,7,9];
+  if(Math.random()>.2){
+    const f=262*Math.pow(2,scale[Math.floor(Math.random()*5)]/12);
+    const o=a.createOscillator(),og=a.createGain();
+    o.type='triangle';o.frequency.value=f;
+    og.gain.setValueAtTime(0,t);og.gain.linearRampToValueAtTime(.4,t+.03);
+    og.gain.exponentialRampToValueAtTime(.001,t+.5);
+    o.connect(og);og.connect(toneGain);o.start(t);o.stop(t+.6);
+  }
+  setTimeout(melodyLoop,340);
+}
+function angDiff(a,b){let d=Math.abs(a-b)%360;return d>180?360-d:d;}
+function signal(){ /* 0..1 */
+  const d=angDiff(angle,sweet);
+  return Math.max(0,1-d/26); /* within 26° starts catching; needs ~2° for perfect */
+}
+let lastZone='';
+function shout(arr,zone){
+  if(zone===lastZone&&Math.random()<.7)return;lastZone=zone;
+  const f=document.getElementById('family');
+  f.innerHTML='<div class="shout">📣 '+arr[Math.floor(Math.random()*arr.length)]+'</div>';
+}
+function draw(){
+  const s=signal();
+  /* static + picture blend */
+  const img=g.createImageData(300,220);
+  for(let i=0;i<img.data.length;i+=4){
+    const v=Math.random()*255*(1-s*.96);
+    img.data[i]=v;img.data[i+1]=v;img.data[i+2]=v;img.data[i+3]=255;
+  }
+  g.putImageData(img,0,0);
+  if(s>.25){
+    g.globalAlpha=Math.min(1,(s-.25)/.7);
+    /* the "show": a dancing figure scene */
+    g.fillStyle='#1a2d5c';g.fillRect(0,0,300,150);
+    g.fillStyle='#c8952f';g.fillRect(0,150,300,70);
+    g.fillStyle='#ffdf8a';g.beginPath();g.arc(250,40,20,0,7);g.fill();
+    const t=Date.now()/300;
+    /* dancer */
+    g.strokeStyle='#fff';g.lineWidth=5;g.lineCap='round';
+    const dx=150,dy=120;
+    g.beginPath();g.arc(dx,dy-38,12,0,7);g.stroke(); /* head */
+    g.beginPath();g.moveTo(dx,dy-26);g.lineTo(dx,dy+8);g.stroke(); /* body */
+    g.beginPath();g.moveTo(dx,dy-18);g.lineTo(dx-22,dy-30+Math.sin(t)*14);g.stroke();
+    g.beginPath();g.moveTo(dx,dy-18);g.lineTo(dx+22,dy-30+Math.cos(t)*14);g.stroke();
+    g.beginPath();g.moveTo(dx,dy+8);g.lineTo(dx-14,dy+40);g.stroke();
+    g.beginPath();g.moveTo(dx,dy+8);g.lineTo(dx+14+Math.sin(t*2)*5,dy+40);g.stroke();
+    /* scan lines */
+    g.globalAlpha*= .9;
+    g.fillStyle='rgba(0,0,0,.18)';
+    for(let y=0;y<220;y+=4)g.fillRect(0,y,300,2);
+    g.globalAlpha=1;
+  }
+  /* horizontal roll when signal is mid */
+  if(s>.2&&s<.75&&Math.random()<.3){
+    const off=Math.floor(Math.random()*40);
+    const strip=g.getImageData(0,0,300,off);
+    g.putImageData(strip,0,220-off);
+  }
+}
+function tick(){
+  if(!running)return;
+  const s=signal();
+  document.getElementById('signalFill').style.width=(s*100)+'%';
+  if(staticGain)staticGain.gain.value=.09*(1-s*.95);
+  if(toneGain)toneGain.gain.value=.5*Math.max(0,(s-.4)/.6);
+  if(s>.92){streak++;
+    document.getElementById('streak').textContent=streak+'s';
+    if(streak>best){best=streak;document.getElementById('best').textContent=best+'s';}
+    shout(SHOUTS_GOOD,'good');
+  }else{
+    if(streak>3)shout(SHOUTS_LOST,'lost');
+    else if(s>.5)shout(SHOUTS_CLOSE,'close');
+    else if(Math.random()<.2)shout(SHOUTS_BAD,'bad');
+    streak=0;document.getElementById('streak').textContent='0s';
+  }
+  /* THE DRIFT: sweet spot wanders, sometimes jumps (a crow sat on it) */
+  driftT++;
+  sweet+=Math.sin(driftT/10)*.35;
+  if(Math.random()<.02){sweet=(sweet+30+Math.random()*80)%360;
+    shout(["KAUWA BAITH GAYA ANTENNA PE!! 🐦‍⬛ sab gaya!!"],'crow');}
+  setTimeout(tick,1000);
+}
+function drawLoop(){draw();requestAnimationFrame(drawLoop);}
+document.getElementById('angle').addEventListener('input',e=>{
+  angle=+e.target.value;
+  document.getElementById('dish').style.transform=`translateX(-50%) rotate(${angle-180}deg)`;
+});
+document.getElementById('startBtn').addEventListener('click',function(){
+  ctx().resume();
+  if(!running){running=true;audioSetup();tick();this.style.display='none';
+    shout(["chalu ho gaya!! ab antenna set karo JALDI!!"],'start');}
+});
+/* stars */
+for(let i=0;i<26;i++){const s=document.createElement('div');s.className='star';
+  s.style.left=Math.random()*100+'%';s.style.top=Math.random()*55+'%';
+  document.getElementById('roof').appendChild(s);}
+drawLoop();
+</script>
+</body>
+</html>

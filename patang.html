@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patang — woh kaata!!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;padding:20px 12px 40px}
+  a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:6px}
+  .brand{background:var(--red);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;
+    transform:rotate(-1deg);box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(26px,5vw,40px);text-shadow:2px 2px 0 var(--enamel)}
+  .sub{color:#c9b790;font-size:12px;margin-bottom:12px;text-align:center}
+  #wrap{position:relative;width:min(680px,96vw)}
+  canvas{width:100%;border-radius:14px;box-shadow:0 16px 44px rgba(0,0,0,.55);display:block;touch-action:none}
+  #hud{display:flex;justify-content:space-between;width:min(680px,96vw);margin-top:10px;font-size:13px;color:#c9b790}
+  #hud b{color:var(--haldi)}
+  #kaata{position:absolute;inset:0;display:none;align-items:center;justify-content:center;pointer-events:none}
+  #kaata span{font-family:'Yatra One',cursive;font-size:clamp(40px,9vw,90px);color:var(--haldi);
+    text-shadow:4px 4px 0 var(--red);transform:rotate(-6deg);animation:kaata .6s}
+  @keyframes kaata{0%{transform:rotate(-6deg) scale(.3);opacity:0}60%{transform:rotate(-6deg) scale(1.15)}100%{transform:rotate(-6deg) scale(1)}}
+  #startOv{position:absolute;inset:0;background:rgba(13,20,50,.8);border-radius:14px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px}
+  #startOv p{font-size:14px;color:#cfe0ff;max-width:420px;line-height:1.5}
+  button{font-family:'Yatra One',cursive;font-size:19px;background:var(--haldi);color:var(--dark);
+    border:3px solid var(--red);border-radius:10px;padding:12px 28px;cursor:pointer;box-shadow:4px 5px 0 rgba(0,0,0,.5)}
+  button:hover{transform:translateY(-2px)}
+  button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>पतंग</h1></div>
+<p class="sub">PATANG · pech ladao · manjha tez rakho · "WOH KAATA" ki goonj sunao</p>
+
+<div id="wrap">
+  <canvas id="cv" width="680" height="480"></canvas>
+  <div id="kaata"><span>WOH KAATA!!! ✂️</span></div>
+  <div id="startOv">
+    <p><b>Kaise khelna hai:</b> mouse/ungli se apni patang udao. Dushman ki dor ko apni dor se CROSS karo — jab dorein takraayengi, tab tezi se TAP/CLICK karo (kheencho!). Tension meter bhar gaya = uski patang kati. Dhyan rahe — woh bhi kheench raha hai.</p>
+    <button id="startBtn">🪁 udao</button>
+  </div>
+</div>
+<div id="hud"><span>kills: <b id="kills">0</b></span><span id="hint">dor cross karo → tap tap tap!</span><span>haarein: <b id="losses">0</b></span></div>
+
+<script>
+const cv=document.getElementById('cv'),x=cv.getContext('2d');
+const W=680,H=480;
+let me={x:200,y:220,tx:200,ty:220},foe={x:480,y:180,vx:1.1,vy:.7};
+let running=false,pech=false,tension=0,kills=0,losses=0,taps=0,foePull=0,windT=0;
+let AC=null,master=null;
+function ctx(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+  master=AC.createGain();master.gain.value=.8;master.connect(AC.destination);}return AC;}
+function snapSound(win){
+  const a=ctx(),t=a.currentTime;
+  const o=a.createOscillator(),g=a.createGain();
+  o.type='square';o.frequency.setValueAtTime(win?600:220,t);
+  o.frequency.exponentialRampToValueAtTime(win?1400:90,t+.18);
+  g.gain.setValueAtTime(.2,t);g.gain.exponentialRampToValueAtTime(.001,t+.25);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+.3);
+  if(win){ /* mohalla cheering: burst of filtered noise swells */
+    const b=a.createBuffer(1,a.sampleRate*1.2,a.sampleRate),d=b.getChannelData(0);
+    for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+    const s=a.createBufferSource();s.buffer=b;
+    const bp=a.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1000;bp.Q.value=.5;
+    const cg=a.createGain();cg.gain.setValueAtTime(0,t);cg.gain.linearRampToValueAtTime(.15,t+.3);
+    cg.gain.linearRampToValueAtTime(0,t+1.1);
+    s.connect(bp);bp.connect(cg);cg.connect(master);s.start(t);
+  }
+}
+function kite(cx,cy,c1,c2,ang){
+  x.save();x.translate(cx,cy);x.rotate(ang);
+  x.beginPath();x.moveTo(0,-26);x.lineTo(20,0);x.lineTo(0,26);x.lineTo(-20,0);x.closePath();
+  x.fillStyle=c1;x.fill();x.strokeStyle='#fff';x.lineWidth=2;x.stroke();
+  x.beginPath();x.moveTo(0,-26);x.lineTo(0,26);x.moveTo(-20,0);x.lineTo(20,0);
+  x.strokeStyle=c2;x.stroke();
+  /* tail */
+  x.beginPath();x.moveTo(0,26);
+  for(let i=1;i<=4;i++)x.lineTo(Math.sin(Date.now()/150+i)*8,26+i*12);
+  x.strokeStyle=c2;x.lineWidth=2.5;x.stroke();
+  x.restore();
+}
+function dist2seg(){ /* approx: distance between the two string midpoints */
+  const m1={x:(me.x+40)/2,y:(me.y+H)/2},m2={x:(foe.x+W-40)/2,y:(foe.y+H)/2};
+  return Math.hypot(m1.x-m2.x,m1.y-m2.y);
+}
+function draw(){
+  /* sky */
+  const g=x.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#7fb2e6');g.addColorStop(.75,'#cfe3f5');g.addColorStop(1,'#e8d9a8');
+  x.fillStyle=g;x.fillRect(0,0,W,H);
+  x.fillStyle='#ffdf8a';x.beginPath();x.arc(600,60,26,0,7);x.fill();
+  /* rooftops */
+  x.fillStyle='#8a5a30';x.fillRect(0,H-40,W,40);
+  x.fillStyle='#6b4423';
+  for(let i=0;i<W;i+=85)x.fillRect(i,H-58,60,18);
+  /* strings */
+  x.lineWidth=1.6;
+  x.strokeStyle=pech?'#d5342b':'#333';
+  x.beginPath();x.moveTo(40,H);x.quadraticCurveTo((40+me.x)/2,(H+me.y)/2+30,me.x,me.y);x.stroke();
+  x.strokeStyle=pech?'#d5342b':'#555';
+  x.beginPath();x.moveTo(W-40,H);x.quadraticCurveTo((W-40+foe.x)/2,(H+foe.y)/2+30,foe.x,foe.y);x.stroke();
+  /* kites */
+  kite(me.x,me.y,'#d5342b','#f2b31c',Math.sin(Date.now()/400)*.15);
+  kite(foe.x,foe.y,'#12409e','#f6ead3',Math.cos(Date.now()/350)*.15);
+  /* pech tension meter */
+  if(pech){
+    x.fillStyle='rgba(0,0,0,.45)';x.fillRect(W/2-110,16,220,30);
+    x.fillStyle='#d5342b';x.fillRect(W/2-106,20,212*(foePull/100),22);
+    x.fillStyle='#f2b31c';x.fillRect(W/2-106,20,212*(tension/100),22);
+    x.fillStyle='#fff';x.font='bold 13px Karla';x.textAlign='center';
+    x.fillText('PECH! TAP TAP TAP!! 🔥',W/2,36);
+  }
+}
+function step(){
+  if(!running)return;
+  windT+=.016;
+  /* my kite follows pointer softly + wind */
+  me.x+=(me.tx-me.x)*.08+Math.sin(windT*1.3)*.6;
+  me.y+=(me.ty-me.y)*.08+Math.cos(windT*1.1)*.5;
+  /* foe wanders, sometimes hunts you */
+  if(Math.random()<.01){foe.vx=(Math.random()*2-1)*1.6;foe.vy=(Math.random()*2-1)*1.2;}
+  if(Math.random()<.006){foe.vx=(me.x-foe.x)*.01;foe.vy=(me.y-foe.y)*.01;}
+  foe.x+=foe.vx;foe.y+=foe.vy;
+  if(foe.x<60||foe.x>W-60)foe.vx*=-1;
+  if(foe.y<60||foe.y>H-140)foe.vy*=-1;
+  foe.x=Math.max(60,Math.min(W-60,foe.x));foe.y=Math.max(60,Math.min(H-140,foe.y));
+  /* pech detection: strings close AND kites reasonably near */
+  const near=dist2seg()<46&&Math.hypot(me.x-foe.x,me.y-foe.y)<220;
+  if(near&&!pech){pech=true;tension=20;foePull=20;taps=0;}
+  if(pech){
+    if(!near&&tension<30&&foePull<30){pech=false;} /* drifted apart early */
+    tension=Math.max(0,tension-.45);      /* your grip decays — keep tapping */
+    foePull=Math.min(100,foePull+.55+Math.random()*.35); /* he pulls steadily */
+    if(tension>=100){ /* KAATA! */
+      pech=false;kills++;document.getElementById('kills').textContent=kills;
+      snapSound(true);
+      const k=document.getElementById('kaata');k.style.display='flex';
+      setTimeout(()=>k.style.display='none',1600);
+      foe={x:100+Math.random()*(W-200),y:80,vx:1.2,vy:.8};tension=0;foePull=0;
+    }else if(foePull>=100){ /* you got cut */
+      pech=false;losses++;document.getElementById('losses').textContent=losses;
+      snapSound(false);
+      document.getElementById('hint').textContent='kat gayi 😭 nayi patang aa rahi hai...';
+      running=false;
+      setTimeout(()=>{me={x:200,y:260,tx:200,ty:260};tension=0;foePull=0;running=true;
+        document.getElementById('hint').textContent='dor cross karo → tap tap tap!';step();},1500);
+      draw();return;
+    }
+  }
+  draw();
+  requestAnimationFrame(step);
+}
+function pointerMove(e){
+  const r=cv.getBoundingClientRect();
+  const px=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+  const py=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
+  me.tx=Math.max(50,Math.min(W-50,px*(W/r.width)));
+  me.ty=Math.max(50,Math.min(H-150,py*(H/r.height)));
+}
+function tap(){ if(pech){tension=Math.min(100,tension+7);taps++;} }
+cv.addEventListener('mousemove',pointerMove);
+cv.addEventListener('touchmove',e=>{e.preventDefault();pointerMove(e);},{passive:false});
+cv.addEventListener('mousedown',tap);
+cv.addEventListener('touchstart',e=>{e.preventDefault();pointerMove(e);tap();},{passive:false});
+window.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();tap();}});
+document.getElementById('startBtn').addEventListener('click',()=>{
+  ctx().resume();
+  document.getElementById('startOv').style.display='none';
+  running=true;step();
+});
+draw();
+</script>
+</body>
+</html>

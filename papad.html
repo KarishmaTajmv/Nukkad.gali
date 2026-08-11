@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Papad — ek flip, ek kismat</title>
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+    background-image:radial-gradient(circle at 50% 110%,#34240f 0%,var(--dark) 55%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+  a.back{position:fixed;top:16px;left:16px;color:var(--haldi);font-size:13px;text-decoration:none}
+  .brand{background:var(--red);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;transform:rotate(-1deg);
+    box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(26px,5vw,40px);text-shadow:2px 2px 0 var(--enamel)}
+  .sub{color:#c9b790;font-size:12px;margin-bottom:24px}
+  #papadWrap{position:relative;width:min(240px,64vw);margin-bottom:8px}
+  #papad{width:100%;aspect-ratio:1;border-radius:50%;background:#f2e3c0;position:relative;transition:background 1s;
+    box-shadow:inset 0 0 30px rgba(150,100,30,.25), 0 8px 24px rgba(0,0,0,.4)}
+  #papad::before{content:'';position:absolute;inset:12%;border-radius:50%;
+    background:radial-gradient(circle,transparent 30%,rgba(160,110,40,.18) 100%)}
+  #papad.flipAnim{animation:flip .5s}
+  @keyframes flip{0%{transform:rotateX(0) translateY(0)}50%{transform:rotateX(90deg) translateY(-60px)}100%{transform:rotateX(0) translateY(0)}}
+  #flame{font-size:44px;margin-top:-8px;animation:lick .3s infinite alternate}
+  @keyframes lick{from{transform:scaleY(1)}to{transform:scaleY(1.12)}}
+  #zone{width:min(340px,86vw);margin:18px auto 6px}
+  #zoneBar{height:20px;border-radius:10px;overflow:hidden;display:flex;border:2px solid #3a2f1c;position:relative}
+  #zoneBar .z1{flex:5;background:#e8dbb8}
+  #zoneBar .z2{flex:2;background:#c8952f}
+  #zoneBar .z3{flex:3;background:#3a2210}
+  #marker{position:absolute;top:-6px;width:4px;height:32px;background:var(--cream);border-radius:2px;left:0%;box-shadow:0 0 8px rgba(255,255,255,.6)}
+  #zoneLbl{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.1em;color:#8a7750;text-transform:uppercase;margin-top:4px}
+  #status{min-height:26px;font-size:15px;color:#c9b790;font-style:italic;margin:10px 0}
+  button{font-family:'Yatra One',cursive;font-size:20px;background:var(--haldi);color:var(--dark);
+    border:3px solid var(--red);border-radius:10px;padding:13px 32px;cursor:pointer;box-shadow:4px 5px 0 rgba(0,0,0,.5)}
+  button:hover{transform:translateY(-2px)}
+  button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+  #result{display:none;margin-top:14px}
+  #result b{font-family:'Yatra One',cursive;font-size:clamp(24px,6vw,38px);color:var(--haldi);display:block;text-shadow:2px 2px 0 var(--red)}
+  #result span{font-size:14px;color:#c9b790}
+  #stats{margin-top:14px;font-size:12px;color:#8a7750}
+  #stats b{color:var(--haldi)}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>पापड़</h1></div>
+<p class="sub">PAPAD · seedhi aanch pe · ek flip milega · timing hi sab kuch hai</p>
+
+<div id="papadWrap"><div id="papad"></div></div>
+<div id="flame">🔥</div>
+
+<div id="zone">
+  <div id="zoneBar"><div class="z1"></div><div class="z2"></div><div class="z3"></div><div id="marker"></div></div>
+  <div id="zoneLbl"><span>kachcha</span><span>PERFECT</span><span>JAL GAYA</span></div>
+</div>
+
+<p id="status">papad rakho aanch pe. nazar mat hatana.</p>
+<button id="btn">🫓 papad rakho</button>
+<div id="result"><b id="resTitle"></b><span id="resLine"></span></div>
+<p id="stats">perfect papad: <b id="perfect">0</b> · jale hue: <b id="burnt">0</b></p>
+
+<script>
+/* Two sides. Each side: a marker crawls (variable speed) through raw(0-50) perfect(50-70) burnt(70-100).
+   FLIP in the perfect band. Side 2 is faster. Burnt = over. */
+let phase='idle',prog=0,speed=0,side=1,raf=null,perfect=0,burnt=0,sideScores=[];
+let AC=null,master=null,sizzleGain=null;
+function ctx(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+  master=AC.createGain();master.gain.value=.8;master.connect(AC.destination);}return AC;}
+function noise(sec=2){const a=ctx(),b=a.createBuffer(1,a.sampleRate*sec,a.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b;}
+function sizzle(){
+  const a=ctx(),src=a.createBufferSource();src.buffer=noise(3);src.loop=true;
+  const bp=a.createBiquadFilter();bp.type='bandpass';bp.frequency.value=5000;bp.Q.value=.5;
+  sizzleGain=a.createGain();sizzleGain.gain.value=0;
+  src.connect(bp);bp.connect(sizzleGain);sizzleGain.connect(master);src.start();
+}
+function crunch(){
+  const a=ctx(),t=a.currentTime;
+  for(let i=0;i<3;i++){const src=a.createBufferSource();src.buffer=noise(.06);
+    const hp=a.createBiquadFilter();hp.type='highpass';hp.frequency.value=2500;
+    const g=a.createGain();g.gain.setValueAtTime(.25,t+i*.07);g.gain.exponentialRampToValueAtTime(.001,t+i*.07+.06);
+    src.connect(hp);hp.connect(g);g.connect(master);src.start(t+i*.07);}
+}
+function papadColor(p){
+  const el=document.getElementById('papad');
+  if(p<50)el.style.background=`rgb(${242-p},${227-p*1.2},${192-p*1.6})`;
+  else if(p<70)el.style.background='#c8952f';
+  else el.style.background=`rgb(${88-(p-70)},${50-(p-70)},20)`;
+}
+function loop(){
+  if(phase!=='cooking')return;
+  /* speed wobbles — the flame is moody */
+  speed+= (Math.random()-.48)*.02;
+  speed=Math.max(.14,Math.min(.5,speed));
+  prog+=speed*(side===2?1.5:1);
+  document.getElementById('marker').style.left=Math.min(100,prog)+'%';
+  papadColor(prog);
+  if(sizzleGain)sizzleGain.gain.value=.02+prog*.0009;
+  if(prog>=100){burntEnd();return;}
+  if(prog>72&&Math.random()<.1)say('JALNE WALA HAI!!');
+  raf=requestAnimationFrame(loop);
+}
+function say(t){document.getElementById('status').textContent=t;}
+function burntEnd(){
+  phase='done';burnt++;update();
+  document.getElementById('papad').style.background='#241205';
+  showResult('JAL GAYA 🖤','side '+side+' pe hi shaheed ho gaya. dhuan detector (mummy) activate ho chuka hai.');
+}
+function showResult(t,l){
+  document.getElementById('resTitle').textContent=t;
+  document.getElementById('resLine').textContent=l;
+  document.getElementById('result').style.display='block';
+  document.getElementById('btn').textContent='🫓 naya papad';
+  say('');
+}
+function update(){
+  document.getElementById('perfect').textContent=perfect;
+  document.getElementById('burnt').textContent=burnt;
+}
+document.getElementById('btn').addEventListener('click',function(){
+  const a=ctx();a.resume();if(!sizzleGain)sizzle();
+  if(phase==='idle'||phase==='done'){
+    phase='cooking';prog=0;speed=.22;side=1;sideScores=[];
+    document.getElementById('result').style.display='none';
+    document.getElementById('papad').style.background='#f2e3c0';
+    this.textContent='🔄 FLIP!! (perfect zone mein)';
+    say('side 1 sik raha hai... dekhte raho...');
+    loop();
+  }else if(phase==='cooking'){
+    /* FLIP */
+    const el=document.getElementById('papad');
+    el.classList.remove('flipAnim');void el.offsetWidth;el.classList.add('flipAnim');
+    crunch();
+    sideScores.push(prog);
+    if(side===1){
+      if(prog>=100)return;
+      side=2;
+      const early=prog<50;
+      say(early?'kachcha flip! side 2 pe bharpai karni padegi... (aur yeh TEZ sikta hai)':'flip! side 2 — yeh TEZ sikta hai, ready raho!');
+      prog=0;speed=.24;
+      el.style.background='#f2e3c0';
+    }else{
+      /* done — score both sides */
+      phase='done';cancelAnimationFrame(raf);
+      const s=sideScores;
+      const grade=p=>p>=50&&p<=70?2:(p>=40&&p<80?1:0);
+      const total=grade(s[0])+grade(s[1]);
+      if(total===4){perfect++;update();
+        showResult('PERFECT PAPAD 👑','dono side sunehri. yeh papad frame karne layak hai. ghar mein aaj tumhari izzat +10.');}
+      else if(total>=2)showResult('THEEK-THAAK 🫓','khaane layak hai. dahi ke saath sab chal jaata hai.');
+      else if(s[1]<40)showResult('KACHCHA 😬','andar se naram hai. yeh papad nahi, umeed hai.');
+      else{burnt++;update();showResult('AADHA JALA 🥲','ek side perfect thi. doosri ne dhokha de diya. life lesson hai isme kahin.');}
+      this.textContent='🫓 naya papad';
+    }
+  }
+});
+</script>
+</body>
+</html>

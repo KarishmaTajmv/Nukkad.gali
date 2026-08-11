@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bandar — cursor sambhal ke</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+    background-image:radial-gradient(circle at 50% -10%, #2a2115 0%, var(--dark) 60%);
+    display:flex;flex-direction:column;align-items:center;padding:26px 14px 60px;text-align:center;overflow:hidden}
+  body.stolen{cursor:none}
+  a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:8px}
+  .brand{background:var(--red);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;
+    transform:rotate(-1deg);box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(26px,5vw,40px);text-shadow:2px 2px 0 var(--enamel)}
+  .sub{color:#c9b790;font-size:12px;margin-bottom:22px}
+
+  #scene{max-width:480px;font-size:15px;line-height:1.7;color:#c9b790}
+  #scene .fake{display:inline-block;background:#241c10;border:1px solid #3a2f1c;border-radius:8px;
+    padding:8px 16px;margin:8px 6px;font-weight:700;color:var(--cream);cursor:pointer}
+  #warning{margin-top:22px;font-size:13px;color:#8a7750;font-style:italic}
+  #stats{margin-top:16px;font-size:12px;color:#8a7750;letter-spacing:.08em}
+  #stats b{color:var(--haldi)}
+  #msg{margin-top:14px;min-height:48px;font-family:'Yatra One',cursive;font-size:clamp(18px,4vw,26px);
+    color:var(--haldi);text-shadow:2px 2px 0 rgba(0,0,0,.4)}
+
+  #bandar{position:fixed;font-size:52px;z-index:100;display:none;user-select:none;pointer-events:none;
+    filter:drop-shadow(0 4px 6px rgba(0,0,0,.5));transition:none}
+  #stolenCursor{position:absolute;font-size:22px;top:-6px;left:34px;transform:rotate(-20deg)}
+  #shakeMeter{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);width:min(300px,80vw);display:none;z-index:101}
+  #shakeMeter .lbl{font-size:12px;color:var(--haldi);font-weight:700;letter-spacing:.1em;margin-bottom:4px}
+  #shakeBar{height:16px;border:2px solid var(--haldi);border-radius:10px;background:#241c10;overflow:hidden}
+  #shakeFill{height:100%;width:0%;background:var(--red);transition:width .1s}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>बंदर</h1></div>
+<p class="sub">BANDAR · yeh mohalla uska hai · tumhara cursor bhi</p>
+
+<div id="scene">
+  <p>Yeh ek bilkul normal webpage hai. Aaram se browse karo. Yahan kuch buttons bhi hain, ekdum kaam ke:</p>
+  <span class="fake" tabindex="0">📄 Important Document</span>
+  <span class="fake" tabindex="0">💾 Save Everything</span>
+  <span class="fake" tabindex="0">🔒 Very Secure Button</span>
+  <span class="fake" tabindex="0">☕ Chai Break</span>
+  <p id="warning">bas ek baat... chhat ka darwaza khula reh gaya hai. aur mohalle mein... woh rehta hai.</p>
+</div>
+
+<p id="msg"></p>
+<p id="stats">cursor chori hua: <b id="thefts">0</b> baar · bandar bhagaya: <b id="wins">0</b> baar</p>
+
+<div id="bandar">🐒<span id="stolenCursor"></span></div>
+<div id="shakeMeter"><div class="lbl">MOUSE HILAO!! ZOR SE!! 🫨</div><div id="shakeBar"><div id="shakeFill"></div></div></div>
+
+<script>
+const B=document.getElementById('bandar');
+let mode='lurk'; /* lurk -> approach -> stolen -> flee */
+let bx=-80,by=200,mouseX=300,mouseY=300,thefts=0,wins=0;
+let shake=0,lastMX=0,lastMY=0,lastT=0;
+let AC=null,master=null;
+const STEAL=["ARRE!! CURSOR LE GAYA!!","BANDAR!! BANDAR!! CURSOR!!","woh le gaya. seedha le gaya. aankhon ke saamne."];
+const WIN=["bhaag gaya! cursor wapas mila. izzat nahi.","gaya! par woh yaad rakhega tumhe.","cursor wapas. ab usko chhat pe baitha dekh sakte ho. planning kar raha hai."];
+function ctx(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+  master=AC.createGain();master.gain.value=.8;master.connect(AC.destination);}return AC;}
+function chatter(){
+  const a=ctx(),t=a.currentTime;
+  for(let i=0;i<4;i++){const o=a.createOscillator(),g=a.createGain();
+    o.type='square';o.frequency.setValueAtTime(900+Math.random()*500,t+i*.09);
+    o.frequency.exponentialRampToValueAtTime(600,t+i*.09+.07);
+    g.gain.setValueAtTime(.06,t+i*.09);g.gain.exponentialRampToValueAtTime(.001,t+i*.09+.08);
+    o.connect(g);g.connect(master);o.start(t+i*.09);o.stop(t+i*.09+.09);}
+}
+function say(t){document.getElementById('msg').textContent=t;}
+document.addEventListener('mousemove',e=>{
+  mouseX=e.clientX;mouseY=e.clientY;
+  /* shake detection while stolen */
+  if(mode==='stolen'){
+    const now=performance.now(),dt=Math.max(1,now-lastT);
+    const sp=Math.hypot(e.clientX-lastMX,e.clientY-lastMY)/dt;
+    if(sp>1.4)shake=Math.min(100,shake+sp*2.2);
+    lastT=now;
+  }
+  lastMX=e.clientX;lastMY=e.clientY;
+});
+/* touch fallback: rapid taps count as shakes */
+document.addEventListener('touchstart',()=>{if(mode==='stolen')shake=Math.min(100,shake+12);});
+function place(){B.style.left=bx+'px';B.style.top=by+'px';}
+function loop(){
+  if(mode==='approach'){
+    /* sneak toward the cursor */
+    bx+=(mouseX-bx)*.025;by+=(mouseY-by)*.025;
+    B.style.transform=`scaleX(${mouseX>bx?1:-1})`;
+    place();
+    if(Math.hypot(mouseX-bx,mouseY-by)<40)stealCursor();
+  }
+  if(mode==='stolen'){
+    /* run around chaotically holding the cursor */
+    bx+=Math.sin(Date.now()/300)*7+(Math.random()-.5)*10;
+    by+=Math.cos(Date.now()/260)*6+(Math.random()-.5)*10;
+    bx=Math.max(10,Math.min(window.innerWidth-70,bx));
+    by=Math.max(10,Math.min(window.innerHeight-80,by));
+    place();
+    shake=Math.max(0,shake-1.4); /* decays — keep shaking! */
+    document.getElementById('shakeFill').style.width=shake+'%';
+    if(shake>=100)scared();
+  }
+  if(mode==='flee'){
+    bx+=bx<window.innerWidth/2?-16:16;by-=7;place();
+    if(bx<-100||bx>window.innerWidth+60){mode='lurk';B.style.display='none';scheduleAttack();}
+  }
+  requestAnimationFrame(loop);
+}
+function scheduleAttack(){
+  setTimeout(()=>{
+    if(mode!=='lurk')return;
+    mode='approach';
+    bx=Math.random()<.5?-70:window.innerWidth+30;
+    by=60+Math.random()*(window.innerHeight-200);
+    B.style.display='block';document.getElementById('stolenCursor').textContent='';
+    place();chatter();
+    say(Math.random()<.5?'...kuch suna tumne?':'');
+  },5000+Math.random()*9000);
+}
+function stealCursor(){
+  mode='stolen';thefts++;shake=0;
+  document.getElementById('thefts').textContent=thefts;
+  document.body.classList.add('stolen');
+  document.getElementById('stolenCursor').textContent='🖱️';
+  document.getElementById('shakeMeter').style.display='block';
+  say(STEAL[Math.floor(Math.random()*STEAL.length)]);
+  chatter();chatter();
+  document.title='🐒 CURSOR CHORI HO GAYA';
+}
+function scared(){
+  mode='flee';wins++;
+  document.getElementById('wins').textContent=wins;
+  document.body.classList.remove('stolen');
+  document.getElementById('stolenCursor').textContent='';
+  document.getElementById('shakeMeter').style.display='none';
+  say(WIN[Math.floor(Math.random()*WIN.length)]);
+  chatter();
+  document.title='Bandar — cursor sambhal ke';
+}
+/* fake buttons taunt */
+document.querySelectorAll('.fake').forEach(f=>f.addEventListener('click',()=>{
+  say(mode==='stolen'?'button? KAUNSE CURSOR SE dabaoge?':'button ne kuch nahi kiya. buttons ka kaam bandar ko bulana hai.');
+}));
+window.addEventListener('load',()=>{ scheduleAttack(); loop(); });
+/* audio unlock on first interaction */
+document.addEventListener('pointerdown',()=>ctx().resume(),{once:true});
+</script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slam Book — bhar ke wapas karna!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Kalam:wght@400;700&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+    background-image:radial-gradient(circle at 50% -10%, #2a2115 0%, var(--dark) 60%);
+    display:flex;flex-direction:column;align-items:center;padding:26px 14px 60px}
+  a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:8px}
+  .brand{background:#e86a9e;border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;
+    transform:rotate(-1deg);box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(26px,5vw,40px);text-shadow:2px 2px 0 var(--enamel)}
+  .sub{color:#c9b790;font-size:12px;margin-bottom:18px;text-align:center}
+  #panel{width:min(640px,96vw);display:flex;flex-direction:column;gap:12px}
+  canvas{width:100%;border-radius:10px;box-shadow:0 16px 44px rgba(0,0,0,.55)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:520px){.grid{grid-template-columns:1fr}}
+  .field label{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8a7750;margin-bottom:4px}
+  input,select{width:100%;font-family:'Karla';font-size:15px;font-weight:700;padding:10px 12px;border-radius:8px;
+    border:2px solid #3a2f1c;background:#241c10;color:var(--cream);outline:none}
+  input:focus{border-color:var(--haldi)}
+  .row{display:flex;gap:10px}
+  button{font-family:'Karla';font-weight:700;font-size:15px;border:none;border-radius:10px;padding:13px 20px;cursor:pointer}
+  button:hover{transform:translateY(-2px)}
+  button:focus-visible{outline:3px solid var(--cream);outline-offset:2px}
+  #dlBtn{background:var(--red);color:var(--cream);flex:1}
+  #pageBtn{background:var(--enamel);color:var(--cream)}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>स्लैम बुक</h1></div>
+<p class="sub">SLAM BOOK · 2004 wali · gel pen se bharo · kal wapas karna PAKKA</p>
+
+<div id="panel">
+  <canvas id="cv" width="1080" height="1350"></canvas>
+  <div class="grid">
+    <div class="field"><label>naam</label><input id="f_name" maxlength="18" value="Pinky"></div>
+    <div class="field"><label>nick name</label><input id="f_nick" maxlength="16" value="Pinks 😎"></div>
+    <div class="field"><label>fav colour</label><input id="f_color" maxlength="16" value="Rani pink"></div>
+    <div class="field"><label>fav khana</label><input id="f_food" maxlength="20" value="Maggi (2 min wali)"></div>
+    <div class="field"><label>best friend</label><input id="f_bff" maxlength="18" value="Sweety & Guddu"></div>
+    <div class="field"><label>crush 👀</label><input id="f_crush" maxlength="18" value="(secret hai!!)"></div>
+    <div class="field"><label>life ka motto</label><input id="f_motto" maxlength="34" value="Padho ge likho ge banoge kharab 😜"></div>
+    <div class="field"><label>bada hoke kya banoge</label><input id="f_dream" maxlength="24" value="Pilot ya YouTuber"></div>
+  </div>
+  <div class="row">
+    <button id="pageBtn">📄 page badlo</button>
+    <button id="dlBtn">⬇️ PNG DOWNLOAD — friend ko tag karo</button>
+  </div>
+</div>
+
+<script>
+const cv=document.getElementById('cv'),x=cv.getContext('2d');
+const PAGES=[
+  {bg:'#ffe3ef',rule:'#f5b8d0',ink:'#12409e',head:'#d5342b'},
+  {bg:'#e3f0ff',rule:'#b8d4f0',ink:'#7a2f8c',head:'#12409e'},
+  {bg:'#fff6d8',rule:'#ecd9a0',ink:'#1b7a3d',head:'#c8302f'},
+  {bg:'#e8ffe3',rule:'#bfe8b8',ink:'#c0392b',head:'#1b7a3d'}
+];
+let page=0;
+function doodleStar(cx,cy,r,c){
+  x.save();x.translate(cx,cy);x.strokeStyle=c;x.lineWidth=3;x.beginPath();
+  for(let i=0;i<5;i++){const a=-Math.PI/2+i*4*Math.PI/5;x.lineTo(Math.cos(a)*r,Math.sin(a)*r);}
+  x.closePath();x.stroke();x.restore();
+}
+function heart(cx,cy,s,c){
+  x.save();x.translate(cx,cy);x.scale(s,s);x.fillStyle=c;x.beginPath();
+  x.moveTo(0,4);x.bezierCurveTo(-8,-6,-16,2,0,14);x.bezierCurveTo(16,2,8,-6,0,4);x.fill();x.restore();
+}
+function draw(){
+  const P=PAGES[page];
+  x.fillStyle=P.bg;x.fillRect(0,0,1080,1350);
+  /* ruled lines */
+  x.strokeStyle=P.rule;x.lineWidth=2;
+  for(let y=260;y<1300;y+=88){x.beginPath();x.moveTo(70,y);x.lineTo(1010,y);x.stroke();}
+  /* spiral binding holes */
+  x.fillStyle='#fff';x.strokeStyle='#bbb';
+  for(let y=90;y<1330;y+=110){x.beginPath();x.arc(38,y,13,0,7);x.fill();x.stroke();}
+  /* header */
+  x.textAlign='center';
+  x.font='86px "Yatra One"';x.fillStyle=P.head;
+  x.fillText('MY SLAM BOOK',560,140);
+  x.font='26px "Kalam"';x.fillStyle=P.ink;
+  x.fillText('~ * ~ bhar ke KAL wapas karna warna katti ~ * ~',560,190);
+  /* fields */
+  const F=[
+    ['Naam:',v('f_name')],['Nick name:',v('f_nick')],
+    ['Fav colour:',v('f_color')],['Fav khana:',v('f_food')],
+    ['Best friend:',v('f_bff')],['Crush:',v('f_crush')+' 🙈'],
+    ['Life ka motto:',v('f_motto')],['Bade hoke:',v('f_dream')]
+  ];
+  x.textAlign='left';
+  F.forEach((f,i)=>{
+    const y=250+i*88;
+    x.font='bold 30px "Kalam"';x.fillStyle='#555';
+    x.fillText(f[0],80,y);
+    x.font='38px "Kalam"';x.fillStyle=P.ink;
+    x.fillText(f[1],80+x.measureText(' ').width+ measureLabel(f[0]),y);
+  });
+  function measureLabel(t){x.font='bold 30px "Kalam"';return x.measureText(t).width+18;}
+  /* footer scribbles */
+  x.font='30px "Kalam"';x.fillStyle=P.head;x.textAlign='center';
+  x.fillText('"FRIENDS 4EVER" — likh ke de diya, ab pakka hai 📌',560,1090);
+  x.font='24px "Kalam"';x.fillStyle='#777';
+  x.fillText('P.S. — yeh page kisi ko mat dikhana (dikha dena)',560,1140);
+  x.fillText('nukkad · slam book',560,1290);
+  /* doodles */
+  doodleStar(950,90,26,P.head);doodleStar(120,1200,20,P.ink);
+  heart(980,1180,2.4,P.head);heart(90,90,2,P.head);heart(940,1240,1.6,P.ink);
+}
+function v(id){return document.getElementById(id).value||'—';}
+['f_name','f_nick','f_color','f_food','f_bff','f_crush','f_motto','f_dream']
+  .forEach(id=>document.getElementById(id).addEventListener('input',draw));
+document.getElementById('pageBtn').addEventListener('click',()=>{page=(page+1)%PAGES.length;draw();});
+document.getElementById('dlBtn').addEventListener('click',()=>{
+  const a=document.createElement('a');a.download=(v('f_name')||'slam')+'-slambook.png';
+  a.href=cv.toDataURL('image/png');a.click();
+});
+if(document.fonts&&document.fonts.load){
+  Promise.all([document.fonts.load('86px "Yatra One"'),document.fonts.load('38px "Kalam"')]).then(draw).catch(draw);
+  setTimeout(draw,1200);
+}else draw();
+</script>
+</body>
+</html>

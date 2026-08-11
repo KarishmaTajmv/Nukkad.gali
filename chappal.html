@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chappal — ek hi kaafi hai</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:#0a0d1a;color:var(--cream);min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;padding:20px 12px 40px;overflow:hidden}
+  a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:6px;z-index:10}
+  .brand{background:var(--red);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;
+    transform:rotate(-1deg);box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px;z-index:10}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(26px,5vw,40px);text-shadow:2px 2px 0 var(--enamel)}
+  .sub{color:#8a93b8;font-size:12px;margin-bottom:12px;text-align:center;z-index:10}
+
+  #arena{position:relative;width:min(680px,96vw);height:min(58vh,440px);border-radius:14px;overflow:hidden;
+    background:linear-gradient(#141b33,#0d1226);box-shadow:0 16px 44px rgba(0,0,0,.6);
+    cursor:none;touch-action:none}
+  /* room at night */
+  #arena::before{content:'';position:absolute;right:8%;top:12%;width:90px;height:120px;
+    background:linear-gradient(#2a3555,#1a2340);border-radius:4px;border:3px solid #0a0f22} /* window */
+  #arena::after{content:'🌙';position:absolute;right:11%;top:16%;font-size:30px;opacity:.8}
+  #bed{position:absolute;bottom:0;left:6%;width:200px;height:70px;background:#3a2f4a;border-radius:10px 10px 0 0}
+  #bed::before{content:'';position:absolute;top:-16px;left:12px;width:60px;height:24px;background:#5a4a6a;border-radius:8px}
+
+  #machhar{position:absolute;font-size:22px;user-select:none;will-change:transform;filter:drop-shadow(0 0 3px rgba(0,0,0,.8));z-index:3}
+  #slipper{position:absolute;font-size:44px;pointer-events:none;transform:translate(-50%,-60%) rotate(-20deg);z-index:5;
+    transition:transform .06s;user-select:none}
+  #slipper.smack{transform:translate(-50%,-60%) rotate(30deg) scale(1.25)}
+  .splat{position:absolute;font-size:26px;z-index:2;animation:fade 1.6s forwards}
+  @keyframes fade{to{opacity:0}}
+  #flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:6}
+  #flash.on{animation:fl .18s}
+  @keyframes fl{0%{opacity:.6}100%{opacity:0}}
+
+  #hud{display:flex;gap:22px;margin-top:12px;font-size:13px;color:#8a93b8;z-index:10}
+  #hud b{color:var(--haldi);font-family:'Yatra One';font-size:19px}
+  #msg{margin-top:8px;font-size:14px;color:#c9b790;font-style:italic;min-height:22px;text-align:center;z-index:10}
+  #startOv{position:absolute;inset:0;background:rgba(10,13,26,.85);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:14px;z-index:20;text-align:center;padding:20px;cursor:default}
+  #startOv p{font-size:14px;color:#aab6dd;max-width:400px;line-height:1.5}
+  button{font-family:'Yatra One',cursive;font-size:19px;background:var(--haldi);color:var(--dark);
+    border:3px solid var(--red);border-radius:10px;padding:12px 28px;cursor:pointer;box-shadow:4px 5px 0 rgba(0,0,0,.5)}
+  button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>चप्पल</h1></div>
+<p class="sub">CHAPPAL · raat ke 2 baje · woh awaaz · aur ek hi hathiyar</p>
+
+<div id="arena">
+  <div id="bed"></div>
+  <div id="machhar">🦟</div>
+  <div id="slipper">🩴</div>
+  <div id="flash"></div>
+  <div id="startOv">
+    <p>Headphones lagao — machhar ki awaaz LEFT-RIGHT ghoomegi, kaan se dhoondo. 🩴 cursor le jao aur SMACK karo. Woh chalaak hai. Woh dodge karega. Par tum... tum Indian ho.</p>
+    <button id="startBtn">🩴 shikaar shuru</button>
+  </div>
+</div>
+<div id="hud"><span>kills: <b id="kills">0</b></span><span>misses: <b id="misses">0</b></span><span>streak: <b id="streak">0</b></span></div>
+<p id="msg"></p>
+
+<script>
+const arena=document.getElementById('arena'),M=document.getElementById('machhar'),S=document.getElementById('slipper');
+let mx=200,my=150,vx=1.4,vy=1,alive=true,running=false,kills=0,misses=0,streak=0,speed=1;
+let dodgeCool=0,restT=0,resting=false;
+let AC=null,master=null,buzzOsc=null,buzzGain=null,panNode=null;
+const KILL_LINES=["SMACK. neend ki jeet. 😤","ek hi kaafi tha.","poore khandaan ko khabar bhej do iska.","yeh chappal ab retire ho sakti hai. legend ban gayi."];
+const MISS_LINES=["bach gaya!! 😤","woh HAS raha hai. sun sakte ho?","deewar ka nuksaan hua. machhar ka nahi.","thoda aur left... nahi... ab woh kahin aur hai."];
+
+function ctx(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+  master=AC.createGain();master.gain.value=.8;master.connect(AC.destination);}return AC;}
+function startBuzz(){
+  const a=ctx();
+  buzzOsc=a.createOscillator();buzzOsc.type='sawtooth';buzzOsc.frequency.value=520;
+  const lfo=a.createOscillator(),lg=a.createGain();lfo.frequency.value=24;lg.gain.value=40;
+  lfo.connect(lg);lg.connect(buzzOsc.frequency);lfo.start();
+  buzzGain=a.createGain();buzzGain.gain.value=.03;
+  panNode=a.createStereoPanner?a.createStereoPanner():null;
+  const hp=a.createBiquadFilter();hp.type='highpass';hp.frequency.value=380;
+  buzzOsc.connect(hp);
+  if(panNode){hp.connect(panNode);panNode.connect(buzzGain);}else hp.connect(buzzGain);
+  buzzGain.connect(master);buzzOsc.start();
+}
+function smackSound(hit){
+  const a=ctx(),t=a.currentTime;
+  const b=a.createBuffer(1,a.sampleRate*.15,a.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);
+  const src=a.createBufferSource();src.buffer=b;
+  const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=hit?900:500;
+  const g=a.createGain();g.gain.value=hit?.5:.35;
+  src.connect(lp);lp.connect(g);g.connect(master);src.start(t);
+}
+function spawn(){
+  const r=arena.getBoundingClientRect();
+  mx=40+Math.random()*(r.width-80);my=40+Math.random()*(r.height-120);
+  vx=(Math.random()<.5?-1:1)*(1.2+speed*.5);vy=(Math.random()<.5?-1:1)*(1+speed*.4);
+  alive=true;resting=false;M.style.display='block';M.textContent='🦟';
+  if(buzzGain)buzzGain.gain.setTargetAtTime(.03,ctx().currentTime,.3);
+}
+function loop(){
+  if(!running)return;
+  const r=arena.getBoundingClientRect();
+  if(alive){
+    if(resting){ restT--; if(restT<=0){resting=false;} }
+    else{
+      /* erratic flight */
+      vx+=(Math.random()-.5)*.9;vy+=(Math.random()-.5)*.9;
+      const cap=2.2+speed*.7;
+      vx=Math.max(-cap,Math.min(cap,vx));vy=Math.max(-cap,Math.min(cap,vy));
+      mx+=vx*2;my+=vy*2;
+      if(mx<15||mx>r.width-30)vx*=-1;
+      if(my<15||my>r.height-40)vy*=-1;
+      mx=Math.max(15,Math.min(r.width-30,mx));my=Math.max(15,Math.min(r.height-40,my));
+      /* sometimes lands on the wall (easier target... trap?) */
+      if(Math.random()<.004){resting=true;restT=90+Math.random()*80;}
+    }
+    if(dodgeCool>0)dodgeCool--;
+    M.style.transform=`translate(${mx}px,${my}px) scaleX(${vx>0?1:-1})`;
+    /* audio follows position */
+    if(panNode)panNode.pan.value=(mx/r.width)*2-1;
+    if(buzzGain){const nearBed=my>r.height*.6?1.4:1;
+      buzzGain.gain.value=resting?.008:.03*nearBed*(0.7+0.3*Math.sin(Date.now()/300));}
+  }
+  requestAnimationFrame(loop);
+}
+function moveSlipper(e){
+  const r=arena.getBoundingClientRect();
+  const px=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+  const py=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
+  S.style.left=px+'px';S.style.top=py+'px';
+  /* mosquito senses the slipper approaching — dodges! */
+  if(alive&&!resting&&dodgeCool<=0){
+    const d=Math.hypot(px-mx-11,py-my-11);
+    if(d<70&&Math.random()<.5){
+      vx=(mx-px)>0?3+speed:-3-speed;vy=(my-py)>0?2.5:-2.5;dodgeCool=30;
+    }
+  }
+}
+function smack(e){
+  if(!running)return;
+  const r=arena.getBoundingClientRect();
+  const px=(e.changedTouches?e.changedTouches[0].clientX:e.clientX)-r.left;
+  const py=(e.changedTouches?e.changedTouches[0].clientY:e.clientY)-r.top;
+  S.classList.add('smack');setTimeout(()=>S.classList.remove('smack'),120);
+  document.getElementById('flash').classList.add('on');
+  setTimeout(()=>document.getElementById('flash').classList.remove('on'),200);
+  if(!alive)return;
+  const d=Math.hypot(px-mx-11,py-my-11);
+  if(d<34){
+    alive=false;kills++;streak++;speed+=.25;
+    smackSound(true);
+    if(buzzGain)buzzGain.gain.setTargetAtTime(0,ctx().currentTime,.05);
+    const sp=document.createElement('div');sp.className='splat';sp.textContent='💥';
+    sp.style.left=mx+'px';sp.style.top=my+'px';arena.appendChild(sp);
+    setTimeout(()=>sp.remove(),1700);
+    M.style.display='none';
+    say(KILL_LINES[Math.floor(Math.random()*KILL_LINES.length)]);
+    setTimeout(spawn,1800+Math.random()*1500);
+  }else{
+    misses++;streak=0;smackSound(false);
+    if(d<110)say(MISS_LINES[Math.floor(Math.random()*MISS_LINES.length)]);
+  }
+  updateHud();
+}
+function say(t){document.getElementById('msg').textContent=t;}
+function updateHud(){
+  document.getElementById('kills').textContent=kills;
+  document.getElementById('misses').textContent=misses;
+  document.getElementById('streak').textContent=streak;
+}
+arena.addEventListener('mousemove',moveSlipper);
+arena.addEventListener('touchmove',e=>{e.preventDefault();moveSlipper(e);},{passive:false});
+arena.addEventListener('mousedown',smack);
+arena.addEventListener('touchend',e=>{e.preventDefault();smack(e);},{passive:false});
+document.getElementById('startBtn').addEventListener('click',()=>{
+  ctx().resume();startBuzz();
+  document.getElementById('startOv').style.display='none';
+  running=true;spawn();loop();
+  say('sunno... kaan lagao... kahan hai woh...');
+});
+</script>
+</body>
+</html>

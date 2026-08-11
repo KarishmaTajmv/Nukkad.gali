@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bahana — yours obediently</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Kalam:wght@400;700&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+    background-image:radial-gradient(circle at 50% -10%, #2a2115 0%, var(--dark) 60%);
+    display:flex;flex-direction:column;align-items:center;padding:26px 14px 60px}
+  a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:8px}
+  .brand{background:var(--enamel);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;
+    transform:rotate(-1deg);box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(26px,5vw,40px);text-shadow:2px 2px 0 var(--red)}
+  .sub{color:#c9b790;font-size:12px;margin-bottom:20px;text-align:center}
+
+  #panel{width:min(620px,96vw);display:flex;flex-direction:column;gap:12px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:520px){.grid{grid-template-columns:1fr}}
+  .field label{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8a7750;margin-bottom:4px}
+  input,select{width:100%;font-family:'Karla';font-size:15px;font-weight:700;padding:10px 12px;border-radius:8px;
+    border:2px solid #3a2f1c;background:#241c10;color:var(--cream);outline:none}
+  input:focus,select:focus{border-color:var(--haldi)}
+  button{font-family:'Karla';font-weight:700;font-size:15px;border:none;border-radius:10px;padding:13px 20px;cursor:pointer}
+  button:hover{transform:translateY(-2px)}
+  button:focus-visible{outline:3px solid var(--cream);outline-offset:2px}
+  #genBtn{background:var(--red);color:var(--cream)}
+  #copyBtn{background:var(--enamel);color:var(--cream)}
+  .row{display:flex;gap:10px}
+  .row button{flex:1}
+
+  #letter{
+    background:#fdf6e3;color:#26364a;border-radius:6px;padding:34px 34px 28px;
+    font-family:'Kalam',cursive;font-size:17px;line-height:1.9;white-space:pre-wrap;
+    background-image:repeating-linear-gradient(#fdf6e3 0 32px,#dce8f0 32px 33px);
+    box-shadow:0 14px 40px rgba(0,0,0,.5);min-height:340px;
+    border-left:3px solid #e8a0a0;
+  }
+  .note{font-size:11px;color:#8a7750;text-align:center}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>बहाना</h1></div>
+<p class="sub">BAHANA · sarkari-quality excuse letters · "yours obediently" guaranteed</p>
+
+<div id="panel">
+  <div class="grid">
+    <div class="field"><label>aapka naam</label><input id="f_name" maxlength="20" value="Rohan"></div>
+    <div class="field"><label>class/section ya office</label><input id="f_class" maxlength="20" value="Class 8-B"></div>
+    <div class="field"><label>kisko likhna hai</label>
+      <select id="f_to">
+        <option>The Class Teacher</option>
+        <option>The Principal</option>
+        <option>The PT Teacher</option>
+        <option>The Tuition Sir</option>
+        <option>The Manager (office version)</option>
+      </select>
+    </div>
+    <div class="field"><label>asli reason (sach sach)</label>
+      <select id="f_truth">
+        <option>neend nahi khuli</option>
+        <option>homework nahi kiya</option>
+        <option>match dekhna tha</option>
+        <option>bas mann nahi tha</option>
+        <option>shaadi mein jaana tha</option>
+        <option>game ka naya update aaya tha</option>
+      </select>
+    </div>
+  </div>
+  <div class="row">
+    <button id="genBtn">📜 bahana banao</button>
+    <button id="copyBtn">📋 copy karo</button>
+  </div>
+  <div id="letter">yahan aapka certified bahana likha jayega...</div>
+  <p class="note">disclaimer: nukkad is letter ki wajah se padi daant ka zimmedar nahi hai 🙏</p>
+</div>
+
+<script>
+const OPENERS=[
+  "With utmost respect and humble submission, I beg to state that",
+  "Most respectfully and with folded hands, I wish to inform you that",
+  "With deep regret and heavy heart, I would like to bring to your kind notice that",
+  "It is with great sorrow and genuine helplessness that I must inform you that"
+];
+const EXCUSES={
+  'neend nahi khuli':[
+    "our house clock, which has served the family faithfully for eleven years, chose yesterday of all days to stop at 4:15 AM, plunging our entire household into temporal confusion",
+    "a sudden and mysterious power failure disabled all three alarm systems in our home simultaneously, an event our electrician has called 'statistically impossible'"
+  ],
+  'homework nahi kiya':[
+    "my completed homework was tragically consumed by water damage when our neighbour's overhead tank developed a leak directly above my study table, sparing every other object in the room",
+    "my younger cousin, who was visiting from the village, mistook my homework copy for drawing paper and has since returned to the village along with the evidence"
+  ],
+  'match dekhna tha':[
+    "I was struck by a sudden fever of unknown origin which, as per our family doctor's verbal advice over the phone, required complete bed rest in front of a source of ambient noise",
+    "an urgent family gathering was called at short notice, attendance at which was declared compulsory by my grandmother, whose word in our household is final and binding"
+  ],
+  'bas mann nahi tha':[
+    "I experienced a severe bout of stomach uneasiness, the kind which comes without warning and departs without explanation, leaving no medical evidence behind",
+    "our area was affected by unexpected waterlogging, and though the water receded by afternoon, the roads remained, in my honest assessment, unsafe for a student of my calibre"
+  ],
+  'shaadi mein jaana tha':[
+    "a wedding in our extended family required my urgent presence, as I had been assigned critical responsibilities including welcoming of guests and safekeeping of the shagun envelopes",
+    "my mama ji's wedding preparations demanded all available hands, and in our family, refusing mama ji is not a recognised option"
+  ],
+  'game ka naya update aaya tha':[
+    "I was suddenly required to assist my father with an urgent computer-related task of a highly technical nature, which extended late into the night against everyone's wishes",
+    "our internet connection experienced a critical malfunction which I alone in the household possess the knowledge to repair, a repair which took several dedicated hours"
+  ]
+};
+const CLOSERS=[
+  "I assure you that such circumstances, being entirely beyond human control, shall not repeat themselves.",
+  "Kindly consider my situation with the kindness for which you are famous throughout the school.",
+  "I promise to make up for the lost studies with double dedication and triple sincerity.",
+  "Trusting in your large-heartedness, I remain hopeful of your kind forgiveness."
+];
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function gen(){
+  const name=document.getElementById('f_name').value||'Student',
+        cls=document.getElementById('f_class').value||'Class 8-B',
+        to=document.getElementById('f_to').value,
+        truth=document.getElementById('f_truth').value;
+  const today=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+  const txt=
+`To,
+${to}
+
+Date: ${today}
+
+Respected Sir/Madam,
+
+${pick(OPENERS)} I was unable to be present / complete my duties, because ${pick(EXCUSES[truth])}.
+
+${pick(CLOSERS)}
+
+Kindly grant me pardon for the same and oblige.
+
+Thanking you,
+Yours obediently,
+${name}
+(${cls})`;
+  document.getElementById('letter').textContent=txt;
+}
+document.getElementById('genBtn').addEventListener('click',gen);
+document.getElementById('copyBtn').addEventListener('click',function(){
+  navigator.clipboard?.writeText(document.getElementById('letter').textContent).then(()=>{
+    this.textContent='✅ copied!';setTimeout(()=>this.textContent='📋 copy karo',1500);});
+});
+gen();
+</script>
+</body>
+</html>

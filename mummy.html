@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sabki Mummy — sab pata hai unko</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c;--pink:#e86a9e}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+    background-image:radial-gradient(circle at 50% -10%, #2a2115 0%, var(--dark) 60%);
+    display:flex;flex-direction:column;align-items:center;padding:26px 14px 60px}
+  a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:8px}
+  .brand{background:var(--pink);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;
+    transform:rotate(-1deg);box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(26px,5vw,40px);text-shadow:2px 2px 0 var(--enamel)}
+  .sub{color:#c9b790;font-size:12px;margin-bottom:18px;text-align:center}
+
+  #chat{width:min(560px,96vw);background:#0f0c07;border:3px solid #3a2f1c;border-radius:12px;
+    padding:14px;height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+  .msg{max-width:84%;padding:10px 14px;border-radius:12px;font-size:15px;line-height:1.45;animation:pop .18s}
+  @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+  .msg.mummy{background:#3a1f2e;border:1px solid #6a3a52;align-self:flex-start;border-bottom-left-radius:2px}
+  .msg.mummy::before{content:'mummy 💗';display:block;font-size:10px;color:var(--pink);letter-spacing:.1em;margin-bottom:4px}
+  .msg.you{background:var(--enamel);align-self:flex-end;border-bottom-right-radius:2px}
+
+  #inputRow{display:flex;gap:10px;width:min(560px,96vw)}
+  #dayIn{flex:1;font-family:'Karla';font-size:15px;padding:12px 14px;border-radius:10px;
+    border:3px solid var(--haldi);background:#241c10;color:var(--cream);outline:none}
+  #dayIn:focus{border-color:var(--cream)}
+  #dayIn::placeholder{color:#8a7750}
+  button{font-family:'Karla';font-weight:700;font-size:15px;background:var(--red);color:var(--cream);
+    border:none;border-radius:10px;padding:0 20px;cursor:pointer}
+  button:hover{transform:translateY(-1px)}
+  button:focus-visible{outline:3px solid var(--cream);outline-offset:2px}
+  #score{margin-top:12px;font-size:12px;color:#8a7750;letter-spacing:.08em;text-align:center}
+  #score b{color:var(--haldi)}
+  .hint{margin-top:6px;font-size:11px;color:#6b5b3a;text-align:center;max-width:480px}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>सबकी मम्मी</h1></div>
+<p class="sub">SABKI MUMMY · batao aaj kya kiya · woh sab jaanti hain (SAB)</p>
+
+<div id="chat" aria-live="polite"></div>
+<div id="inputRow">
+  <input id="dayIn" maxlength="140" placeholder="aaj maine... (sach batana, waise bhi pata chal jayega)" aria-label="Tell mummy about your day">
+  <button id="sendBtn">BATAO</button>
+</div>
+<p id="score">mummy ki nazar mein aap: <b id="verdict">abhi jaanch chal rahi hai</b></p>
+<p class="hint">try: "der tak soya" · "maggi khayi" · "gym gaya" · "padhai ki" · "dost ke saath ghuma" · "kuch nahi kiya"</p>
+
+<script>
+const RULES=[
+  {k:['soya','sota','soti','neend','uth','late utha','so gay'],r:[
+    "12 baje tak sote rahe?! Suraj bhi sharma gaya hoga. Humare zamane mein 5 baje uthke...",
+    "Neend puri karna acchi baat hai beta. PAR ITNI BHI NAHI.",
+    "Sharma ji ka beta 6 baje uthke yoga karta hai. Bas bata rahi hoon. Kuch keh nahi rahi."
+  ],g:-2},
+  {k:['maggi','chips','pizza','burger','bahar ka','zomato','swiggy','momos','chowmein'],r:[
+    "PHIR bahar ka khana?! Ghar mein sabzi padi sad rahi hai aur nawab sahab ko momos chahiye.",
+    "Maggi khana hai toh mujhe bata dete, main usme sabzi daal deti. Ab pet kharab ho toh mujhe mat bolna. (Bolna. Main hi theek karungi.)",
+    "Yeh Zomato wale tumhe naam se jaante honge ab toh. Sharam karo. Aur haan — mere liye kya order kiya?"
+  ],g:-1},
+  {k:['padhai','padha','study','kaam kiya','project','assignment','office','meeting'],r:[
+    "Hmm. Padhai ki? ...Sach mein? Phone side mein rakh ke ki thi ya saamne rakh ke?",
+    "Bahut accha beta!! ...Ruk, yeh mujhe kyun bata rahe ho? Kuch chahiye kya? 🤨",
+    "Shabash! Aaj khaane mein tumhari pasand ka banaungi. (Lauki. Lauki tumhari pasand hai. Aaj se.)"
+  ],g:+2},
+  {k:['gym','exercise','daud','walk','yoga','cricket','khel'],r:[
+    "Gym ja rahe ho par doodh nahi peete. Yeh kaisa gym hai jisme doodh mana hai?",
+    "Accha hai accha hai. Par itna dubla kyun lag raha hai? Ruk, paratha bana rahi hoon.",
+    "Kasrat ke baad kuch khaya? Nahi na? Aise hi kamzor hote jaa rahe ho."
+  ],g:+1},
+  {k:['dost','friend','ghuma','ghumne','party','movie','picture','bahar gaya'],r:[
+    "Kaun dost? Naam kya hai? Kiska beta hai? Kahan rehte hain? Papa kya karte hain?",
+    "Ghoomna-phirna theek hai par ghar ke kaam mein bhi kabhi haath bata diya karo. Kal almari saaf karni hai. Tum karoge. Tay ho gaya.",
+    "Movie dekhi? Kitne ka ticket tha? KITNE KA?! Itne mein toh mahine bhar ki sabzi aa jaati."
+  ],g:0},
+  {k:['kuch nahi','kucch nahi','nothing','bore','timepass','reels','scroll','phone chala'],r:[
+    "Kuch nahi kiya?! PURA DIN?! Beta yeh 'kuch nahi' hi ek din sab kuch le doobega.",
+    "Din bhar phone. Raat bhar phone. Ek din yeh phone hi tumhara rishta lekar aayega kya?",
+    "Chalo accha hai. Free ho na? Aaj se bartan tumhare zimme. Khushi hui na batake?"
+  ],g:-2},
+  {k:['khana banaya','cook','khud banaya','roti','sabzi banayi'],r:[
+    "Tumne khana banaya?! Rasoi ki photo bhejo. ABHI. Mujhe nuksaan ka andaza lagana hai.",
+    "Waah beta! ...Namak theek tha? Gas band ki? BAND KI NA GAS?",
+    "Bahut accha. Ab roz banao. Nahi nahi, mazaak nahi kar rahi."
+  ],g:+2},
+  {k:['bimar','sick','bukhar','sardi','khansi','sar dard','tabiyat'],r:[
+    "BUKHAR?! Kitna? Thermometer lagaya? Kadha bhej rahi hoon. Aur haan — AC band karo pehle.",
+    "Maine kaha tha na geela sar leke mat ghumo. Kaha tha na? Ab bhugto. Adrak wali chai pee lo, aaram aayega.",
+    "Tabiyat kharab hai toh phone kyun chala rahe ho? Aankhein aur kharab hongi. So jao. Doctor ko dikhana kal PAKKA."
+  ],g:0},
+];
+const DEFAULTS=[
+  "Hmm. Aur khaana khaya time pe? Yeh batao pehle.",
+  "Theek hai. Waise mausi ka phone aaya tha, tumhari shaadi ki baat kar rahi thi. Bas bata rahi hoon.",
+  "Accha suno — paani kam pee rahe ho aajkal. Mujhe pata hai. Mat poochho kaise.",
+  "Beta jo bhi karo, bas doodh pee ke karo.",
+  "Yeh sab toh theek hai, par sweater pehna tha ki nahi?"
+];
+let guilt=0,exchanges=0;
+function say(who,txt){
+  const c=document.getElementById('chat'),d=document.createElement('div');
+  d.className='msg '+who;d.textContent=txt;c.appendChild(d);c.scrollTop=c.scrollHeight;
+}
+function verdictText(){
+  if(guilt>=3)return "ghar ka gaurav 🏆 (filhaal)";
+  if(guilt>=1)return "theek-thaak bachcha 🙂";
+  if(guilt>=-1)return "nazar rakhi ja rahi hai 🧐";
+  if(guilt>=-3)return "Sharma ji ke bete se tulna zone ⚠️";
+  return "beta tumse na ho payega 💔 (phir bhi khana garam hai)";
+}
+function respond(input){
+  const low=input.toLowerCase();
+  let hit=null;
+  for(const rule of RULES){ if(rule.k.some(k=>low.includes(k))){hit=rule;break;} }
+  const pool=hit?hit.r:DEFAULTS;
+  guilt+=hit?hit.g:0;exchanges++;
+  setTimeout(()=>{
+    say('mummy',pool[Math.floor(Math.random()*pool.length)]);
+    /* the follow-up jab: mummy never sends just one message */
+    if(Math.random()<.45)setTimeout(()=>{
+      say('mummy',DEFAULTS[Math.floor(Math.random()*DEFAULTS.length)]);
+    },1400+Math.random()*800);
+    document.getElementById('verdict').textContent=verdictText();
+  },700+Math.random()*600);
+}
+function send(){
+  const inp=document.getElementById('dayIn');
+  const v=inp.value.trim();
+  if(!v)return;
+  say('you',v);inp.value='';
+  respond(v);
+}
+document.getElementById('sendBtn').addEventListener('click',send);
+document.getElementById('dayIn').addEventListener('keydown',e=>{if(e.key==='Enter')send();});
+setTimeout(()=>say('mummy','Haan beta, bolo. Aaj kya kiya? Aur jhooth mat bolna — mujhe awaaz se pata chal jaata hai. Type karne ki awaaz se bhi.'),500);
+</script>
+</body>
+</html>

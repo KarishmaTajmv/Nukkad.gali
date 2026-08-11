@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chidiya — ab yeh roz aayenge</title>
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:#8fb3d9;color:var(--dark);min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;padding:22px 12px 0;overflow:hidden}
+  a.back{align-self:flex-start;color:var(--enamel);font-size:13px;text-decoration:none;font-weight:700;margin-bottom:6px}
+  .brand{background:var(--enamel);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;transform:rotate(-1deg);
+    box-shadow:5px 6px 0 rgba(0,0,0,.35);margin-bottom:4px;color:var(--cream)}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(26px,5vw,40px);text-shadow:2px 2px 0 var(--red)}
+  .sub{color:#2a4a6a;font-size:12px;font-weight:700;margin-bottom:10px;text-align:center}
+  #hud{display:flex;gap:18px;font-size:13px;color:#2a4a6a;font-weight:700;margin-bottom:6px}
+  #hud b{font-family:'Yatra One';font-size:18px;color:var(--red)}
+  #msg{min-height:24px;font-size:14px;color:#1a3a5a;font-style:italic;text-align:center}
+  #chowk{position:relative;width:100vw;flex:1;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  #ground{position:absolute;bottom:0;left:0;right:0;height:58%;background:#b8a988}
+  #ground::before{content:'';position:absolute;top:0;left:0;right:0;height:8px;background:#a89878}
+  .kabootar{position:absolute;font-size:30px;user-select:none;will-change:transform;z-index:3;transition:font-size .3s}
+  .dana{position:absolute;width:5px;height:5px;border-radius:50%;background:#e8d9a0;z-index:2}
+  #bench{position:absolute;bottom:12%;right:8%;font-size:52px;z-index:1}
+  #stopBtn{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:10;
+    font-family:'Karla';font-weight:700;font-size:13px;background:var(--red);color:var(--cream);
+    border:none;border-radius:20px;padding:10px 20px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+  #stopBtn:focus-visible{outline:3px solid #fff;outline-offset:2px}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>चिड़िया</h1></div>
+<p class="sub">CHIDIYA · chowk pe dana daalo · (chetavani: yeh decision permanent hai)</p>
+<div id="hud"><span>kabootar: <b id="count">0</b></span><span>dana dala: <b id="fed">0</b> baar</span></div>
+<p id="msg">chowk pe kahin bhi tap karo — dana girega</p>
+
+<div id="chowk">
+  <div id="ground"></div>
+  <div id="bench">🪑</div>
+</div>
+<button id="stopBtn">🛑 bas karo, dana band</button>
+
+<script>
+const chowk=document.getElementById('chowk');
+let birds=[],fed=0,stopPresses=0;
+const MSGS=[
+  "pehla aa gaya. masoom lag raha hai. LAG raha hai.",
+  "usne doston ko bata diya. kabootar network 5G se tez hai.",
+  "ab yeh roz aayenge. tumne rishta bana liya hai.",
+  "balcony walon ne tumhe dekh liya hai. nazrein teekhi hain.",
+  "ab yeh tumhe pehchaante hain. bhes badalna bekaar hai.",
+  "guftar-e-kabootar: 'yahan wala banda soft hai.'",
+  "yeh ab tumhare sapno mein bhi gutur-goo karenge.",
+  "scientific fact: kabootar kabhi 'bas' nahi samajhte.",
+  "tumhara naam kabootar samaj mein amar ho chuka hai."
+];
+let AC=null,master=null;
+function ctx(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+  master=AC.createGain();master.gain.value=.75;master.connect(AC.destination);}return AC;}
+function coo(){
+  const a=ctx(),t=a.currentTime,o=a.createOscillator(),g=a.createGain();
+  o.type='sine';o.frequency.setValueAtTime(420,t);
+  o.frequency.linearRampToValueAtTime(320,t+.12);o.frequency.linearRampToValueAtTime(380,t+.22);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.05,t+.04);g.gain.linearRampToValueAtTime(0,t+.28);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+.3);
+}
+function peck(){
+  const a=ctx(),t=a.currentTime,o=a.createOscillator(),g=a.createGain();
+  o.type='square';o.frequency.value=1800;
+  g.gain.setValueAtTime(.03,t);g.gain.exponentialRampToValueAtTime(.001,t+.03);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+.04);
+}
+function flap(){
+  const a=ctx(),t=a.currentTime;
+  for(let i=0;i<4;i++){const b=a.createBuffer(1,a.sampleRate*.05,a.sampleRate),d=b.getChannelData(0);
+    for(let j=0;j<d.length;j++)d[j]=(Math.random()*2-1)*(1-j/d.length);
+    const src=a.createBufferSource();src.buffer=b;
+    const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=900;
+    const g=a.createGain();g.gain.value=.12;
+    src.connect(lp);lp.connect(g);g.connect(master);src.start(t+i*.09);}
+}
+function say(t){document.getElementById('msg').textContent=t;}
+function addBird(tx,ty){
+  const el=document.createElement('div');el.className='kabootar';el.textContent='🐦';
+  const fromLeft=Math.random()<.5;
+  const b={el,x:fromLeft?-40:window.innerWidth+40,y:60+Math.random()*80,tx,ty,state:'fly',peckT:0};
+  chowk.appendChild(el);birds.push(b);flap();
+  document.getElementById('count').textContent=birds.length;
+  if(birds.length<=MSGS.length)say(MSGS[birds.length-1]);
+}
+function loop(){
+  const gTop=chowk.offsetHeight*.42;
+  birds.forEach(b=>{
+    if(b.state==='fly'){
+      b.x+=(b.tx-b.x)*.05;b.y+=(b.ty-b.y)*.05;
+      if(Math.hypot(b.tx-b.x,b.ty-b.y)<12){b.state='peck';coo();}
+    }else{
+      /* waddle + peck */
+      if(Math.random()<.02){b.tx=Math.max(20,Math.min(chowk.offsetWidth-40,b.tx+(Math.random()-.5)*120));
+        b.ty=Math.max(gTop+10,Math.min(chowk.offsetHeight-50,b.ty+(Math.random()-.5)*60));b.state='fly';}
+      if(Math.random()<.05){peck();b.peckT=6;}
+    }
+    if(b.peckT>0){b.peckT--;b.el.style.transform=`translate(${b.x}px,${b.y+3}px) scaleX(${b.tx>b.x?1:-1}) rotate(18deg)`;}
+    else b.el.style.transform=`translate(${b.x}px,${b.y}px) scaleX(${b.tx>b.x?1:-1})`;
+  });
+  requestAnimationFrame(loop);
+}
+chowk.addEventListener('pointerdown',e=>{
+  ctx().resume();
+  const r=chowk.getBoundingClientRect();
+  const x=e.clientX-r.left,y=Math.max(chowk.offsetHeight*.45,e.clientY-r.top);
+  fed++;document.getElementById('fed').textContent=fed;
+  /* scatter dana */
+  for(let i=0;i<6;i++){const d=document.createElement('div');d.className='dana';
+    d.style.left=(x+(Math.random()-.5)*50)+'px';d.style.top=(y+(Math.random()-.5)*30)+'px';
+    chowk.appendChild(d);setTimeout(()=>d.remove(),9000);}
+  /* birds come: 1-2 new, existing ones converge */
+  const newBirds=birds.length<45?(1+(Math.random()<.4?1:0)):0;
+  for(let i=0;i<newBirds;i++)setTimeout(()=>addBird(x+(Math.random()-.5)*80,y+(Math.random()-.5)*40),i*500+Math.random()*800);
+  birds.forEach(b=>{if(Math.random()<.7){b.tx=x+(Math.random()-.5)*90;b.ty=y+(Math.random()-.5)*50;b.state='fly';}});
+  if(birds.length>=45&&Math.random()<.3)say('yeh ab TUMHARA chowk nahi raha.');
+});
+document.getElementById('stopBtn').addEventListener('click',()=>{
+  stopPresses++;
+  const lines=[
+    'dana band karne se kabootar band nahi hote. yeh unka chowk hai ab.',
+    'woh button ko dekh rahe hain. unhe farak nahi padta.',
+    'ek kabootar button ke upar baithne ki soch raha hai.',
+    'is button ka kaam sirf tumhe umeed dena tha. sorry.'
+  ];
+  say(lines[Math.min(stopPresses-1,lines.length-1)]);
+  if(stopPresses===3)addBird(window.innerWidth/2,chowk.offsetHeight*.6);
+});
+loop();
+</script>
+</body>
+</html>

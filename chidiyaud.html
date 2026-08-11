@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chidiya Ud — haathi ud?!</title>
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+background-image:radial-gradient(circle at 50% -10%,#2a2115 0%,var(--dark) 60%);
+display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+a.back{position:fixed;top:16px;left:16px;color:var(--haldi);font-size:13px;text-decoration:none}
+.brand{background:#0e7c74;border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;transform:rotate(-1deg);
+box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+.brand h1{font-family:'Yatra One',cursive;font-size:clamp(24px,5vw,38px);text-shadow:2px 2px 0 var(--red)}
+.sub{color:#c9b790;font-size:12px;margin-bottom:24px}
+#thing{font-size:clamp(80px,18vw,130px);min-height:1.3em;user-select:none}
+#name{font-family:'Yatra One';font-size:clamp(28px,6vw,44px);color:var(--haldi);text-shadow:2px 2px 0 var(--red);min-height:1.2em}
+#udBtn{margin-top:22px;font-family:'Yatra One',cursive;font-size:26px;background:var(--red);color:var(--cream);
+border:4px solid var(--haldi);border-radius:14px;padding:18px 50px;cursor:pointer;box-shadow:0 7px 0 #7a1a12;transition:transform .05s}
+#udBtn:active{transform:translateY(5px);box-shadow:0 2px 0 #7a1a12}
+#udBtn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+#hud{margin-top:18px;font-size:13px;color:#8a7750}#hud b{color:var(--haldi);font-family:'Yatra One';font-size:19px}
+#msg{margin-top:8px;min-height:24px;font-size:15px;color:#c9b790;font-style:italic}
+#startBtn{font-family:'Yatra One';font-size:19px;background:var(--haldi);color:var(--dark);border:3px solid var(--red);
+border-radius:10px;padding:12px 28px;cursor:pointer;box-shadow:4px 5px 0 rgba(0,0,0,.5);margin-top:20px}
+</style></head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>चिड़िया उड़</h1></div>
+<p class="sub">CHIDIYA UD · udne wala ho toh UD dabao · haathi pe dabaya toh gaye</p>
+
+<div id="thing">🪑</div>
+<div id="name">ready?</div>
+<button id="udBtn" disabled>UD!! 🕊️</button>
+<div id="hud">score: <b id="score">0</b> · streak: <b id="streak">0</b> · best: <b id="best">0</b></div>
+<p id="msg"></p>
+<button id="startBtn">▶ khelo</button>
+
+<script>
+const THINGS=[
+['🐦','chidiya',1],['🦅','baaz',1],['🦜','tota',1],['🐦‍⬛','kauwa',1],['🦋','titli',1],
+['🦟','machhar',1],['🐝','madhumakkhi',1],['🪁','patang',1],['✈️','hawai jahaz',1],['🚁','helicopter',1],
+['🐘','haathi',0],['🐄','gaay',0],['🪑','kursi',0],['🥔','aloo',0],['🚲','cycle',0],
+['🐍','saanp',0],['🐟','machhli',0],['🧱','eent',0],['🍳','tawa',0],['👞','joota',0],
+['🦇','chamgadar',1],['🐓','murga',0.5],['🦩','flamingo',1],['🐧','penguin',0.5],['🛺','auto',0]];
+/* 0.5 = trick items: murga/penguin — technically birds, technically can't fly. UD = wrong! */
+let cur=null,score=0,streak=0,best=0,windowOpen=false,timer=null,speed=1900,running=false,answered=false;
+let AC=null,master=null;
+function ctx(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+master=AC.createGain();master.gain.value=.75;master.connect(AC.destination);}return AC;}
+function ding(good){const a=ctx(),t=a.currentTime,o=a.createOscillator(),g=a.createGain();
+o.type='sine';o.frequency.value=good?1100:250;
+g.gain.setValueAtTime(.15,t);g.gain.exponentialRampToValueAtTime(.001,t+.3);
+o.connect(g);g.connect(master);o.start(t);o.stop(t+.32);}
+function say(t){document.getElementById('msg').textContent=t;}
+function next(){
+  if(!running)return;
+  answered=false;
+  cur=THINGS[Math.floor(Math.random()*THINGS.length)];
+  document.getElementById('thing').textContent=cur[0];
+  document.getElementById('name').textContent=cur[1]+' ud!';
+  windowOpen=true;
+  timer=setTimeout(()=>{
+    windowOpen=false;
+    if(!answered){
+      if(cur[2]===1){streak=0;ding(false);say(cur[1]+' udta tha!! aap so rahe the?? streak gayi.');}
+      else{score+=1;streak++;say('sahi — '+cur[1]+' nahi udta. chhodna bhi skill hai.');}
+      update();
+    }
+    setTimeout(next,700);
+  },speed);
+  speed=Math.max(850,speed-25);
+}
+function press(){
+  if(!windowOpen||answered||!running)return;
+  answered=true;
+  const a=ctx();a.resume();
+  if(cur[2]===1){score+=2;streak++;ding(true);say(cur[1]+' UD GAYA! 🕊️');}
+  else if(cur[2]===0.5){streak=0;ding(false);say(cur[1]+'?! bird hai par UDTA NAHI. classic trap. 😈');}
+  else{streak=0;ding(false);say(cur[1].toUpperCase()+' UD GAYA?! mohalle mein news ban gayi aapki.');}
+  update();
+}
+function update(){
+  if(streak>best)best=streak;
+  document.getElementById('score').textContent=score;
+  document.getElementById('streak').textContent=streak;
+  document.getElementById('best').textContent=best;
+}
+document.getElementById('udBtn').addEventListener('click',press);
+addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();press();}});
+document.getElementById('startBtn').addEventListener('click',function(){
+  ctx().resume();running=true;score=0;streak=0;speed=1900;update();
+  this.style.display='none';document.getElementById('udBtn').disabled=false;
+  say('dhyan se... sab kuch udta nahi...');setTimeout(next,900);
+});
+</script>
+</body></html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bijli — woh wala switch kiska hai?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:#141021;color:var(--cream);min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;padding:24px 14px 60px;transition:background 1s}
+  body.lit{background:#2a2440}
+  a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:8px}
+  .brand{background:var(--enamel);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;
+    transform:rotate(-1deg);box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(26px,5vw,40px);text-shadow:2px 2px 0 var(--red)}
+  .sub{color:#9a8fb8;font-size:12px;margin-bottom:20px;text-align:center}
+
+  /* the room */
+  #room{position:relative;width:min(620px,96vw);height:230px;margin-bottom:20px}
+  #tubelight{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:280px;height:16px;border-radius:8px;
+    background:#3a3552;box-shadow:none;transition:none}
+  #tubelight.on{background:#f4f8ff;box-shadow:0 0 60px 22px rgba(220,235,255,.5)}
+  #tubelight.flick{background:#cfd8f5;box-shadow:0 0 30px 8px rgba(220,235,255,.3)}
+  #fan{position:absolute;top:52px;left:50%;transform:translateX(-50%);width:150px;height:150px}
+  #fanBlades{width:100%;height:100%;transform-origin:center}
+  #bulb{position:absolute;top:36px;right:8%;font-size:40px;filter:grayscale(1) opacity(.4);transition:filter .2s}
+  #bulb.on{filter:none;text-shadow:0 0 40px rgba(255,220,120,.9)}
+  #radioBox{position:absolute;bottom:10px;left:6%;font-size:44px;opacity:.45;transition:opacity .3s}
+  #radioBox.on{opacity:1}
+  #mixerBox{position:absolute;bottom:10px;right:6%;font-size:40px;opacity:.45}
+  #mixerBox.on{opacity:1;animation:vibrate .06s infinite}
+  @keyframes vibrate{0%{transform:translate(0)}50%{transform:translate(1.5px,-1px)}100%{transform:translate(-1px,1px)}}
+
+  /* switchboard */
+  #board{background:#e8e2d0;border:5px solid #b8ad88;border-radius:10px;padding:18px 16px 12px;
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:14px;width:min(620px,96vw);
+    box-shadow:0 14px 40px rgba(0,0,0,.5), inset 0 2px 0 #fff8}
+  .sw{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .sw button{
+    width:44px;height:64px;border-radius:8px;border:2px solid #a89d78;cursor:pointer;
+    background:linear-gradient(#fdf8e7,#d8cfae);position:relative;box-shadow:inset 0 -4px 0 #b8ad88;
+  }
+  .sw button::after{content:'';position:absolute;left:8px;right:8px;top:8px;height:20px;border-radius:5px;
+    background:#c8bd98;transition:top .08s, background .08s}
+  .sw button[aria-pressed="true"]::after{top:34px;background:var(--red)}
+  .sw button:focus-visible{outline:3px solid var(--enamel);outline-offset:2px}
+  .sw label{font-size:10px;font-weight:700;letter-spacing:.08em;color:#6b5b3a;text-transform:uppercase;text-align:center}
+  /* regulator */
+  #regWrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+  #reg{width:58px;height:58px;border-radius:50%;background:radial-gradient(#fdf8e7,#c8bd98);
+    border:3px solid #a89d78;cursor:pointer;position:relative;box-shadow:inset 0 -3px 0 #b8ad88}
+  #reg::after{content:'';position:absolute;left:50%;top:6px;width:4px;height:20px;background:#6b5b3a;border-radius:2px;
+    transform-origin:50% 23px;transform:translateX(-50%) rotate(var(--a,0deg))}
+  #reg:focus-visible{outline:3px solid var(--enamel);outline-offset:2px}
+  #msg{margin-top:16px;font-size:14px;color:#c9b790;font-style:italic;min-height:22px;text-align:center;max-width:460px}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>बिजली</h1></div>
+<p class="sub">BIJLI · purana switchboard · sab kuch chalao · ek switch ka raaz aaj tak nahi khula</p>
+
+<div id="room">
+  <div id="tubelight"></div>
+  <div id="fan">
+    <svg id="fanBlades" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="7" fill="#8a7750"/>
+      <ellipse cx="50" cy="24" rx="9" ry="22" fill="#b8ad88"/>
+      <ellipse cx="27" cy="63" rx="9" ry="22" fill="#b8ad88" transform="rotate(120 50 50)"/>
+      <ellipse cx="73" cy="63" rx="9" ry="22" fill="#b8ad88" transform="rotate(240 50 50)"/>
+    </svg>
+  </div>
+  <div id="bulb">💡</div>
+  <div id="radioBox">📻</div>
+  <div id="mixerBox">🥤</div>
+</div>
+
+<div id="board" role="group" aria-label="Switchboard">
+  <div class="sw"><button id="s_tube" aria-pressed="false" aria-label="Tubelight"></button><label>tube<br>light</label></div>
+  <div class="sw"><button id="s_fan" aria-pressed="false" aria-label="Fan"></button><label>pankha</label></div>
+  <div id="regWrap" class="sw"><div id="reg" tabindex="0" role="slider" aria-label="Fan regulator" aria-valuemin="0" aria-valuemax="5" aria-valuenow="3" style="--a:108deg"></div><label>regulator</label></div>
+  <div class="sw"><button id="s_bulb" aria-pressed="false" aria-label="Bulb"></button><label>bulb</label></div>
+  <div class="sw"><button id="s_radio" aria-pressed="false" aria-label="Radio"></button><label>radio</label></div>
+  <div class="sw"><button id="s_mixer" aria-pressed="false" aria-label="Mixer"></button><label>mixer<br>(dhyan se)</label></div>
+  <div class="sw"><button id="s_bell" aria-pressed="false" aria-label="Doorbell"></button><label>ghanti</label></div>
+  <div class="sw"><button id="s_mystery" aria-pressed="false" aria-label="Unknown switch"></button><label>???</label></div>
+</div>
+
+<p id="msg">yeh board 1994 se laga hai. respect se chalao.</p>
+
+<script>
+let AC=null,master=null;
+function ctx(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+  master=AC.createGain();master.gain.value=.85;master.connect(AC.destination);}return AC;}
+function noise(sec=2){const a=ctx(),b=a.createBuffer(1,a.sampleRate*sec,a.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b;}
+function clickSnd(){const a=ctx(),t=a.currentTime,o=a.createOscillator(),g=a.createGain();
+  o.type='square';o.frequency.value=1400;
+  g.gain.setValueAtTime(.08,t);g.gain.exponentialRampToValueAtTime(.001,t+.03);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+.04);}
+function say(t){document.getElementById('msg').textContent=t;}
+function toggle(btn){const on=btn.getAttribute('aria-pressed')!=='true';
+  btn.setAttribute('aria-pressed',on);clickSnd();return on;}
+
+/* ---- FAN ---- */
+let fanOn=false,fanSpeed=3,fanAngle=0,fanRPM=0,fanNode=null,fanGain=null;
+function fanLoop(){
+  const target=fanOn?fanSpeed*2.4:0;
+  fanRPM+=(target-fanRPM)*.02; /* slow spin-up/down — the real feel */
+  fanAngle+=fanRPM;
+  document.getElementById('fanBlades').style.transform=`rotate(${fanAngle}deg)`;
+  if(fanGain)fanGain.gain.value=Math.min(.09,fanRPM*.008);
+  requestAnimationFrame(fanLoop);
+}
+function fanAudio(){
+  const a=ctx(),src=a.createBufferSource();src.buffer=noise(3);src.loop=true;
+  const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=300;
+  fanGain=a.createGain();fanGain.gain.value=0;
+  src.connect(lp);lp.connect(fanGain);fanGain.connect(master);src.start();fanNode=src;
+}
+document.getElementById('s_fan').addEventListener('click',function(){
+  ctx().resume(); if(!fanNode)fanAudio();
+  fanOn=toggle(this);
+  say(fanOn?(fanSpeed===5?'full speed. ab kagaz udenge, sambhalo.':'pankha chalu. dheere dheere pakdega raftaar.'):'pankha band. garmi ab official hai.');
+});
+/* regulator */
+const reg=document.getElementById('reg');
+function setReg(n){fanSpeed=Math.max(0,Math.min(5,n));
+  reg.style.setProperty('--a',(fanSpeed*54-27)+'deg');
+  reg.setAttribute('aria-valuenow',fanSpeed);
+  if(fanOn)say(fanSpeed===0?'regulator zero. pankha ghoom raha hai par hawa nahi. physics ka apman.':`speed ${fanSpeed}. ${fanSpeed>=4?'kagaz pakdo!':''}`);}
+reg.addEventListener('click',()=>{ctx().resume();clickSnd();setReg((fanSpeed+1)%6);});
+reg.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowUp'){e.preventDefault();setReg(fanSpeed+1);clickSnd();}
+  if(e.key==='ArrowLeft'||e.key==='ArrowDown'){e.preventDefault();setReg(fanSpeed-1);clickSnd();}
+});
+fanLoop();
+
+/* ---- TUBELIGHT with choke delay ---- */
+let tubeOn=false,tubeBusy=false;
+function chokeTick(){const a=ctx(),t=a.currentTime,o=a.createOscillator(),g=a.createGain();
+  o.type='square';o.frequency.value=120;
+  g.gain.setValueAtTime(.05,t);g.gain.exponentialRampToValueAtTime(.001,t+.06);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+.07);}
+function tubeHum(on){const a=ctx();
+  if(on){const o=a.createOscillator();o.type='sawtooth';o.frequency.value=100;
+    const g=a.createGain();g.gain.value=.008;
+    o.connect(g);g.connect(master);o.start();a.__tubeHum={o,g};}
+  else if(a.__tubeHum){try{a.__tubeHum.o.stop()}catch(e){}a.__tubeHum=null;}}
+document.getElementById('s_tube').addEventListener('click',function(){
+  ctx().resume();
+  if(tubeBusy)return;
+  const want=toggle(this);
+  const tube=document.getElementById('tubelight');
+  if(!want){tubeOn=false;tube.classList.remove('on','flick');document.body.classList.remove('lit');tubeHum(false);
+    say('tube band.');return;}
+  /* THE RITUAL: flicker... flicker... catch */
+  tubeBusy=true;say('choke soch raha hai...');
+  let flicks=0;const total=3+Math.floor(Math.random()*4);
+  const fl=setInterval(()=>{
+    tube.classList.add('flick');chokeTick();
+    setTimeout(()=>tube.classList.remove('flick'),90+Math.random()*120);
+    if(++flicks>=total){clearInterval(fl);
+      setTimeout(()=>{tube.classList.add('on');document.body.classList.add('lit');
+        tubeOn=true;tubeBusy=false;tubeHum(true);
+        say('tube jal gayi. choke ne aaj jaldi maan liya.');},400+Math.random()*700);}
+  },420+Math.random()*300);
+});
+
+/* ---- BULB ---- */
+document.getElementById('s_bulb').addEventListener('click',function(){
+  ctx().resume();
+  const on=toggle(this);
+  document.getElementById('bulb').classList.toggle('on',on);
+  say(on?'peela bulb. har cheez thodi purani yaadein jaisi lag rahi hai ab.':'bulb band.');
+});
+
+/* ---- RADIO (tiny generative melody) ---- */
+let radioOn=false,radioTimer=null,radioChain=null;
+function radioTick(){
+  if(!radioOn)return;
+  const a=ctx(),t=a.currentTime;
+  const scale=[0,2,4,7,9];
+  if(Math.random()>.2){
+    const f=196*Math.pow(2,scale[Math.floor(Math.random()*5)]/12)*(Math.random()<.2?2:1);
+    const o=a.createOscillator(),g=a.createGain();
+    o.type='triangle';o.frequency.value=f;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.35,t+.03);
+    g.gain.exponentialRampToValueAtTime(.001,t+.6);
+    o.connect(g);g.connect(radioChain);o.start(t);o.stop(t+.7);
+  }
+  radioTimer=setTimeout(radioTick,380);
+}
+document.getElementById('s_radio').addEventListener('click',function(){
+  const a=ctx();a.resume();
+  radioOn=toggle(this);
+  document.getElementById('radioBox').classList.toggle('on',radioOn);
+  if(radioOn){
+    if(!radioChain){const bp=a.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1100;bp.Q.value=.8;
+      const g=a.createGain();g.gain.value=.12;bp.connect(g);g.connect(master);radioChain=bp;}
+    radioTick();say('radio chalu. Vividh Bharati ka mood hai aaj.');
+  }else{clearTimeout(radioTimer);say('radio band. gaana adhura reh gaya. jaisa hamesha hota hai.');}
+});
+
+/* ---- MIXER (loud!) ---- */
+let mixerOn=false,mixerNodes=null;
+document.getElementById('s_mixer').addEventListener('click',function(){
+  const a=ctx();a.resume();
+  mixerOn=toggle(this);
+  document.getElementById('mixerBox').classList.toggle('on',mixerOn);
+  if(mixerOn){
+    const o=a.createOscillator();o.type='sawtooth';o.frequency.value=95;
+    const o2=a.createOscillator();o2.type='square';o2.frequency.value=190;
+    const src=a.createBufferSource();src.buffer=noise(2);src.loop=true;
+    const bp=a.createBiquadFilter();bp.type='bandpass';bp.frequency.value=900;
+    const g=a.createGain();g.gain.value=.14;
+    o.connect(g);o2.connect(g);src.connect(bp);bp.connect(g);g.connect(master);
+    o.start();o2.start();src.start();mixerNodes=[o,o2,src];
+    say('MIXER!! (agar radio chal raha tha toh ab nahi sunayi dega. asli anubhav.)');
+  }else{if(mixerNodes)mixerNodes.forEach(n=>{try{n.stop()}catch(e){}});mixerNodes=null;
+    say('mixer band. kaano ko shanti mili.');}
+});
+
+/* ---- DOORBELL ---- */
+document.getElementById('s_bell').addEventListener('click',function(){
+  const a=ctx();a.resume();toggle(this);setTimeout(()=>this.setAttribute('aria-pressed','false'),300);
+  const t=a.currentTime;
+  [[659,0],[523,.35]].forEach(([f,off])=>{
+    const o=a.createOscillator(),g=a.createGain();
+    o.type='sine';o.frequency.value=f;
+    g.gain.setValueAtTime(.2,t+off);g.gain.exponentialRampToValueAtTime(.001,t+off+.8);
+    o.connect(g);g.connect(master);o.start(t+off);o.stop(t+off+.9);});
+  say('TING-TONG. ...koi nahi aaya. kabhi koi nahi aata.');
+});
+
+/* ---- THE MYSTERY SWITCH ---- */
+let mysteryCount=0;
+const MYSTERY=[
+  'kuch nahi hua. jaisa ki 1994 se hota aa raha hai.',
+  'phir kuch nahi hua. yeh switch kis cheez ka hai, dadaji ko bhi nahi pata tha.',
+  'ek theory hai ki yeh padosi ke ghar ka geyser chalata hai. proof nahi hai.',
+  'kuch nahi. par kya tumne mehsoos kiya... kahin door... kuch hua? nahi? theek hai.',
+  'is switch ne aaj tak kisi cheez ko on nahi kiya. par board isko hata bhi nahi sakta. yeh parivaar ka hissa hai.'
+];
+document.getElementById('s_mystery').addEventListener('click',function(){
+  ctx().resume();toggle(this);
+  say(MYSTERY[Math.min(mysteryCount,MYSTERY.length-1)]);
+  mysteryCount++;
+  /* on the 7th press, ONE thing happens, once, ever */
+  if(mysteryCount===7){
+    say('...ek second. kya woh... kya padosi ke ghar ki batti jali? nahi. bhram tha. shayad.');
+  }
+});
+</script>
+</body>
+</html>

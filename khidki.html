@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Khidki — window seat, forever</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c;--coach:#2a4a8c}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:#0d1b3d;color:var(--cream);min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;padding:22px 14px 50px}
+  a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:8px}
+  .brand{background:var(--red);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;
+    transform:rotate(-1deg);box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:6px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(28px,5vw,42px);text-shadow:2px 2px 0 var(--enamel)}
+  .sub{color:#9db0d8;font-size:13px;margin-bottom:18px;text-align:center}
+
+  /* the coach wall + window */
+  #coach{background:var(--coach);border-radius:16px;padding:26px 26px 18px;width:min(680px,96vw);
+    box-shadow:0 20px 50px rgba(0,0,0,.5), inset 0 3px 0 #4a6ab0;position:relative}
+  #coach::before{content:'दो — 2 — TWO TIER';position:absolute;top:8px;left:50%;transform:translateX(-50%);
+    font-size:10px;letter-spacing:.3em;color:#7a92c8}
+  #window{position:relative;border:10px solid #1a2d5c;border-radius:12px;overflow:hidden;height:min(46vh,340px);background:#87b8e8}
+  #window::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.09) 45%,transparent 52%);pointer-events:none}
+  /* horizontal bars like real train windows */
+  .bar{position:absolute;left:0;right:0;height:7px;background:#1a2d5c;z-index:5;border-radius:2px}
+  .bar.b1{top:33%}.bar.b2{top:66%}
+
+  .layer{position:absolute;top:0;bottom:0;left:0;width:200%;background-repeat:repeat-x;background-position:bottom}
+  #sky{background:linear-gradient(#7fb2e6 0%, #cfe3f5 70%, #e8d9a8 100%);width:100%}
+  #sun{position:absolute;top:14%;right:16%;width:46px;height:46px;border-radius:50%;background:#ffdf8a;box-shadow:0 0 40px 14px rgba(255,223,138,.5)}
+  svg.scroll{position:absolute;bottom:0;height:100%;width:auto}
+  .far{animation:scroll 38s linear infinite}
+  .mid{animation:scroll 16s linear infinite}
+  .near{animation:scroll 5.5s linear infinite}
+  @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  body.paused .far,body.paused .mid,body.paused .near{animation-play-state:paused}
+
+  /* sill + controls */
+  #sill{background:#1a2d5c;border-radius:0 0 8px 8px;padding:12px 14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+  #sill .left{display:flex;gap:8px;flex-wrap:wrap}
+  button{font-family:'Karla';font-weight:700;font-size:13px;border:none;border-radius:8px;padding:9px 14px;cursor:pointer;transition:transform .1s}
+  button:hover{transform:translateY(-1px)}
+  button:focus-visible{outline:3px solid var(--cream);outline-offset:2px}
+  #soundBtn{background:var(--haldi);color:var(--dark)}
+  #chaiBtn{background:#6b4a2a;color:var(--cream)}
+  #paxCount{font-size:12px;color:#9db0d8}
+  #paxCount b{color:var(--haldi)}
+
+  /* radio panel */
+  #radio{width:min(680px,96vw);margin-top:16px;background:#122448;border:2px solid #2a4a8c;border-radius:12px;padding:16px}
+  #radio h2{font-family:'Yatra One',cursive;font-size:19px;color:var(--haldi);margin-bottom:4px}
+  #radio p{font-size:12px;color:#9db0d8;margin-bottom:10px;line-height:1.5}
+  #embedRow{display:flex;gap:8px}
+  #embedIn{flex:1;font-family:'Karla';font-size:13px;padding:10px 12px;border-radius:8px;border:2px solid #2a4a8c;background:#0d1b3d;color:var(--cream);outline:none}
+  #embedIn:focus{border-color:var(--haldi)}
+  #embedBtn{background:var(--red);color:var(--cream)}
+  #player{margin-top:12px}
+  #player iframe{width:100%;border:none;border-radius:10px}
+  #chaiToast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--haldi);color:var(--dark);
+    font-weight:700;padding:12px 22px;border-radius:24px;transition:transform .3s;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:99}
+  #chaiToast.show{transform:translateX(-50%) translateY(0)}
+  @media (prefers-reduced-motion:reduce){.far,.mid,.near{animation-duration:120s,60s,30s}}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>खिड़की</h1></div>
+<p class="sub">KHIDKI · window seat mil gayi · ab bas dekhte raho</p>
+
+<div id="coach">
+  <div id="window" aria-label="View from a moving train window">
+    <div class="layer" id="sky"></div>
+    <div id="sun"></div>
+    <!-- far hills -->
+    <svg class="scroll far" viewBox="0 0 1200 340" preserveAspectRatio="none" style="width:200%">
+      <path d="M0 250 Q100 190 200 240 T400 235 T600 250 T800 225 T1000 245 T1200 250 V340 H0 Z" fill="#8fae7e" opacity=".7"/>
+      <path d="M0 250 Q150 205 300 245 T600 240 T900 250 T1200 250 V340 H0 Z" fill="#7c9c6c" opacity=".5" transform="translate(600 0)"/>
+    </svg>
+    <!-- mid: fields + trees + huts -->
+    <svg class="scroll mid" viewBox="0 0 1200 340" preserveAspectRatio="none" style="width:260%">
+      <rect y="268" width="1200" height="72" fill="#a8c07a"/>
+      <rect y="268" width="1200" height="8" fill="#96ad69"/>
+      <g fill="#3f6b3a">
+        <circle cx="90" cy="252" r="24"/><rect x="86" y="258" width="8" height="22" fill="#5a4025"/>
+        <circle cx="340" cy="248" r="28"/><rect x="336" y="256" width="8" height="24" fill="#5a4025"/>
+        <circle cx="700" cy="252" r="22"/><rect x="696" y="258" width="8" height="22" fill="#5a4025"/>
+        <circle cx="1020" cy="246" r="26"/><rect x="1016" y="254" width="8" height="26" fill="#5a4025"/>
+      </g>
+      <!-- hut -->
+      <g transform="translate(500 240)"><rect width="54" height="34" fill="#c8a06a"/><polygon points="-6,0 27,-22 60,0" fill="#8a5a30"/><rect x="20" y="14" width="14" height="20" fill="#5a3a1a"/></g>
+      <!-- water tank -->
+      <g transform="translate(880 200)"><rect x="8" y="30" width="6" height="46" fill="#666"/><rect x="34" y="30" width="6" height="46" fill="#666"/><ellipse cx="24" cy="24" rx="26" ry="14" fill="#7a8a99"/></g>
+    </svg>
+    <!-- near: telegraph poles whipping past -->
+    <svg class="scroll near" viewBox="0 0 1200 340" preserveAspectRatio="none" style="width:300%">
+      <g stroke="#2b2417" stroke-width="10">
+        <line x1="100" y1="340" x2="100" y2="60"/><line x1="500" y1="340" x2="500" y2="60"/><line x1="900" y1="340" x2="900" y2="60"/>
+      </g>
+      <g stroke="#2b2417" stroke-width="6">
+        <line x1="70" y1="80" x2="130" y2="80"/><line x1="470" y1="80" x2="530" y2="80"/><line x1="870" y1="80" x2="930" y2="80"/>
+      </g>
+      <path d="M100 84 Q300 130 500 84 Q700 130 900 84" stroke="#1d1810" stroke-width="2.5" fill="none"/>
+      <rect y="322" width="1200" height="18" fill="#6b5b3a"/>
+    </svg>
+    <div class="bar b1"></div><div class="bar b2"></div>
+  </div>
+  <div id="sill">
+    <div class="left">
+      <button id="soundBtn">🔊 train ki awaaz</button>
+      <button id="chaiBtn">☕ chai-garam bulao</button>
+    </div>
+    <span id="paxCount">khidki pe log: <b id="pax">—</b> <small>(beta)</small></span>
+  </div>
+</div>
+
+<div id="radio">
+  <h2>📻 apna gaana lagao</h2>
+  <p>Spotify ya YouTube ka koi bhi link paste karo — playlist, album, ya song. Official player yahin khul jayega, train chalti rahegi. (e.g. open.spotify.com/playlist/... ya youtube.com/watch?v=...)</p>
+  <div id="embedRow">
+    <input id="embedIn" type="url" placeholder="https://open.spotify.com/playlist/... ya YouTube link" aria-label="Paste a Spotify or YouTube link">
+    <button id="embedBtn">LAGAO</button>
+  </div>
+  <div id="player"></div>
+</div>
+
+<div id="chaiToast">☕ "chaaaai... chai garam!" — ₹10, kulhad wali</div>
+
+<script>
+/* ================= train audio ================= */
+let AC=null,master=null,soundOn=false,clackTimer=null;
+function ctx(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+  master=AC.createGain();master.gain.value=.85;master.connect(AC.destination);}return AC;}
+function noise(sec=2){const a=ctx(),b=a.createBuffer(1,a.sampleRate*sec,a.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b;}
+let bedNodes=[];
+function startTrain(){
+  const a=ctx();
+  /* rumble bed */
+  const src=a.createBufferSource();src.buffer=noise(4);src.loop=true;
+  const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=160;
+  const g=a.createGain();g.gain.value=.16;
+  src.connect(lp);lp.connect(g);g.connect(master);src.start();bedNodes.push(src);
+  /* wind hiss */
+  const w=a.createBufferSource();w.buffer=noise(3);w.loop=true;
+  const bp=a.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1400;bp.Q.value=.4;
+  const wg=a.createGain();wg.gain.value=.02;
+  w.connect(bp);bp.connect(wg);wg.connect(master);w.start();bedNodes.push(w);
+  /* the classic ka-dhak ka-dhak: two quick thumps, pause */
+  const clack=()=>{
+    if(!soundOn)return;
+    const t=a.currentTime;
+    [0,.14].forEach(off=>{
+      const s=a.createBufferSource();s.buffer=noise(.1);
+      const f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=420;
+      const cg=a.createGain();cg.gain.setValueAtTime(.4,t+off);cg.gain.exponentialRampToValueAtTime(.001,t+off+.09);
+      s.connect(f);f.connect(cg);cg.connect(master);s.start(t+off);
+    });
+    clackTimer=setTimeout(clack,820);
+  };
+  clack();
+  /* distant horn sometimes */
+  setInterval(()=>{ if(!soundOn||Math.random()<.6)return;
+    const t=a.currentTime,o=a.createOscillator(),o2=a.createOscillator(),g2=a.createGain();
+    o.type='sawtooth';o.frequency.value=311;o2.type='sawtooth';o2.frequency.value=370;
+    const f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=900;
+    g2.gain.setValueAtTime(0,t);g2.gain.linearRampToValueAtTime(.05,t+.3);
+    g2.gain.setValueAtTime(.05,t+1.4);g2.gain.linearRampToValueAtTime(0,t+2);
+    o.connect(f);o2.connect(f);f.connect(g2);g2.connect(master);
+    o.start(t);o2.start(t);o.stop(t+2.1);o2.stop(t+2.1);
+  },25000);
+}
+function stopTrain(){bedNodes.forEach(n=>{try{n.stop()}catch(e){}});bedNodes=[];
+  if(clackTimer)clearTimeout(clackTimer);}
+document.getElementById('soundBtn').addEventListener('click',function(){
+  ctx().resume(); soundOn=!soundOn;
+  if(soundOn){startTrain();this.textContent='🔇 awaaz band';}
+  else{stopTrain();this.textContent='🔊 train ki awaaz';}
+});
+/* chai vendor */
+document.getElementById('chaiBtn').addEventListener('click',()=>{
+  const a=ctx();a.resume();
+  const toast=document.getElementById('chaiToast');
+  toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),3200);
+  /* passing "chaaai" call: filtered vowel-ish sweep panned across */
+  const t=a.currentTime,o=a.createOscillator(),g=a.createGain(),p=a.createStereoPanner?a.createStereoPanner():null;
+  o.type='sawtooth';o.frequency.setValueAtTime(180,t);o.frequency.linearRampToValueAtTime(230,t+.6);
+  o.frequency.linearRampToValueAtTime(170,t+1.6);
+  const f=a.createBiquadFilter();f.type='bandpass';f.frequency.value=800;f.Q.value=3;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.07,t+.4);g.gain.linearRampToValueAtTime(0,t+1.8);
+  o.connect(f);
+  if(p){p.pan.setValueAtTime(-1,t);p.pan.linearRampToValueAtTime(1,t+1.8);f.connect(p);p.connect(g);}
+  else f.connect(g);
+  g.connect(master);o.start(t);o.stop(t+1.9);
+  /* glass clinks */
+  [0.3,0.9,1.4].forEach(off=>{const c=a.createOscillator(),cg=a.createGain();
+    c.type='sine';c.frequency.value=2400+Math.random()*300;
+    cg.gain.setValueAtTime(.05,t+off);cg.gain.exponentialRampToValueAtTime(.001,t+off+.2);
+    c.connect(cg);cg.connect(master);c.start(t+off);c.stop(t+off+.25);});
+});
+
+/* ================= passenger counter (SIMULATED until you add a backend) ================= */
+let pax=2800+Math.floor(Math.random()*900);
+function tickPax(){pax+=Math.floor(Math.random()*7)-3;pax=Math.max(1200,pax);
+  document.getElementById('pax').textContent=pax.toLocaleString('en-IN');
+  setTimeout(tickPax,3000+Math.random()*4000);}
+tickPax();
+
+/* ================= embed radio (official Spotify/YouTube players) ================= */
+function toEmbed(url){
+  try{
+    const u=new URL(url);
+    if(u.hostname.includes('spotify.com')){
+      /* open.spotify.com/{type}/{id} -> open.spotify.com/embed/{type}/{id} */
+      const parts=u.pathname.split('/').filter(Boolean);
+      const i=parts.findIndex(p=>['track','playlist','album','artist','episode','show'].includes(p));
+      if(i>=0&&parts[i+1])return{src:`https://open.spotify.com/embed/${parts[i]}/${parts[i+1]}`,h:parts[i]==='track'?152:352};
+    }
+    if(u.hostname.includes('youtube.com')||u.hostname==='youtu.be'){
+      let id=null,listId=u.searchParams.get('list');
+      if(u.hostname==='youtu.be')id=u.pathname.slice(1);
+      else id=u.searchParams.get('v');
+      if(listId)return{src:`https://www.youtube.com/embed/videoseries?list=${listId}`,h:220};
+      if(id)return{src:`https://www.youtube.com/embed/${id}`,h:220};
+    }
+  }catch(e){}
+  return null;
+}
+document.getElementById('embedBtn').addEventListener('click',()=>{
+  const url=document.getElementById('embedIn').value.trim();
+  const e=toEmbed(url);
+  const box=document.getElementById('player');
+  if(!e){box.innerHTML='<p style="color:#e8a0a0;font-size:13px;margin-top:8px">yeh link samajh nahi aaya — Spotify (track/playlist/album) ya YouTube link do.</p>';return;}
+  box.innerHTML=`<iframe src="${e.src}" height="${e.h}" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="Music player"></iframe>`;
+});
+document.getElementById('embedIn').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('embedBtn').click();});
+</script>
+</body>
+</html>

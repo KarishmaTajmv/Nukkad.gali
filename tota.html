@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tota Bhavishya — tota jhooth nahi bolta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Kalam:wght@400;700&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c;--green:#1b7a3d}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+    background-image:radial-gradient(circle at 50% -10%, #2a2115 0%, var(--dark) 60%);
+    display:flex;flex-direction:column;align-items:center;padding:26px 14px 60px;text-align:center}
+  a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:8px}
+  .brand{background:var(--green);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;
+    transform:rotate(-1deg);box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(26px,5vw,40px);text-shadow:2px 2px 0 var(--red)}
+  .sub{color:#c9b790;font-size:12px;margin-bottom:24px}
+
+  #stage{position:relative;width:min(560px,94vw);height:300px;background:#241c10;border:3px solid #5a4a28;
+    border-radius:14px;overflow:hidden;margin-bottom:16px}
+  #footpath{position:absolute;bottom:0;left:0;right:0;height:56px;background:#3a2f1c;border-top:3px solid #5a4a28}
+  #cage{position:absolute;left:24px;bottom:56px;width:86px;height:110px;border:3px solid #8a7750;border-bottom:none;
+    border-radius:40px 40px 0 0;background:repeating-linear-gradient(90deg,transparent 0 10px,#8a775033 10px 13px)}
+  #tota{position:absolute;bottom:60px;left:52px;font-size:44px;transition:left 2.2s ease-in-out;z-index:3;user-select:none}
+  #tota.flip{transform:scaleX(-1)}
+  #cards{position:absolute;bottom:62px;right:36px;display:flex;gap:7px}
+  .card{width:52px;height:76px;background:var(--enamel);border:2px solid var(--haldi);border-radius:6px;
+    display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--haldi);
+    transition:transform .3s, opacity .3s}
+  .card.pulled{transform:translateY(-30px) rotate(-8deg)}
+  .card.dim{opacity:.3}
+  #speech{position:absolute;top:16px;left:50%;transform:translateX(-50%);background:#fff;color:#222;
+    padding:10px 16px;border-radius:14px;font-size:14px;font-weight:700;max-width:80%;display:none}
+  #speech::after{content:'';position:absolute;bottom:-8px;left:50%;border:8px solid transparent;border-top-color:#fff;border-bottom:none}
+
+  #fortune{display:none;width:min(560px,94vw);background:#fdf6e3;color:#26364a;border-radius:10px;
+    padding:26px 24px;box-shadow:0 14px 40px rgba(0,0,0,.5);border-top:8px solid var(--red)}
+  #fortune h2{font-family:'Yatra One',cursive;color:var(--red);font-size:24px;margin-bottom:10px}
+  #fortune p{font-family:'Kalam',cursive;font-size:19px;line-height:1.7;color:var(--enamel)}
+  #fortune .lucky{margin-top:14px;font-size:13px;color:#6b5b3a;font-family:'Karla'}
+  button{font-family:'Yatra One',cursive;font-size:19px;background:var(--red);color:var(--cream);
+    border:3px solid var(--haldi);border-radius:10px;padding:12px 28px;cursor:pointer;
+    box-shadow:4px 5px 0 rgba(0,0,0,.5);margin-top:14px}
+  button:hover{transform:translateY(-2px)}
+  button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+  button:disabled{opacity:.4;cursor:wait;transform:none}
+  #copyBtn{background:var(--enamel);font-size:15px;font-family:'Karla';font-weight:700;padding:10px 18px}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>तोता भविष्य</h1></div>
+<p class="sub">TOTA BHAVISHYA · Mithu ji, B.A. (Jyotish) · footpath university · fees: ₹0</p>
+
+<div id="stage">
+  <div id="speech"></div>
+  <div id="cage"></div>
+  <div id="tota">🦜</div>
+  <div id="footpath"></div>
+  <div id="cards">
+    <div class="card">✦</div><div class="card">✦</div><div class="card">✦</div><div class="card">✦</div><div class="card">✦</div>
+  </div>
+</div>
+
+<button id="askBtn">🦜 Mithu se poocho</button>
+
+<div id="fortune">
+  <h2 id="fTitle"></h2>
+  <p id="fText"></p>
+  <p class="lucky" id="fLucky"></p>
+  <button id="copyBtn">📋 bhavishya copy karo</button>
+</div>
+
+<script>
+const FORTUNES=[
+  {t:"DHAN YOG 💰",x:"Paisa aayega. Kahan se, kab, kitna — yeh Mithu ko nahi pata. Par aayega. Ho sakta hai purani jeans ki jeb se hi aaye. Wahi bhi toh dhan hai.",l:"lucky item: ₹10 ka purana note"},
+  {t:"PREM YOG 💘",x:"Koi aapke baare mein soch raha hai. Ho sakta hai woh aapka crush ho. Ho sakta hai woh doodhwala ho jisko aapne pichle mahine ka hisaab nahi diya. Dil ke maamle mein Mithu guarantee nahi leta.",l:"lucky color: rani pink"},
+  {t:"YATRA YOG 🚌",x:"Nazdeeki bhavishya mein ek yatra hogi. Bus chhoot bhi sakti hai. Auto wala 'meter se nahi chalega' bolega. Phir bhi jaana. Manzil se zyada raasta yaad rahega.",l:"lucky seat: window wali"},
+  {t:"BHOJAN YOG 🍛",x:"Aaj kisi ke ghar se khaane ka nyota aa sakta hai. Mana mat karna. Jo mana karta hai, uske hisse ka gulab jamun koi aur kha jaata hai. Yeh Mithu ne khud dekha hai.",l:"lucky dish: jo saamne aaye"},
+  {t:"VIGHNA YOG ⚠️",x:"Ek chhoti si rukavat aane wali hai. WiFi ja sakta hai. Chai mein cheeni kam ho sakti hai. Ghabrana nahi — yeh sab guzar jayega. WiFi bhi wapas aayega. Aata hi hai.",l:"upaay: ek deep saans lo, phir doosri"},
+  {t:"BHAGYA UDAY 🌅",x:"Aapka samay badal raha hai. Dheere-dheere. Itna dheere ki aapko lagega kuch nahi ho raha. Par cooker mein bhi andar hi andar sab pak raha hota hai. Seeti aayegi.",l:"lucky time: subah ki pehli chai"},
+  {t:"MITRA YOG 🤝",x:"Ek purana dost yaad karega. Ya aap karoge. Number abhi bhi save hai. Mithu kehta hai: pehle message aap kar do. Ego ka vajan tota bhi nahi utha sakta.",l:"upaay: 'aur bata, kaisa hai' bhejo"},
+  {t:"NIDRA YOG 😴",x:"Aapko aaraam ki zaroorat hai. Yeh koi jyotish nahi, aapki aankhein bol rahi hain. Aaj jaldi so jao. Duniya kal bhi utni hi pagal milegi, fikar mat karo.",l:"lucky position: chaadar ke andar"},
+  {t:"VIDYA YOG 📚",x:"Kuch naya seekhne ka samay hai. Zaroori nahi ki kitab se ho. Mithu ne saikal ke pump se hawa bharna dekh ke seekha tha. Gyaan har jagah hai. Bas chonch khuli rakho.",l:"lucky subject: jo mann kare"},
+  {t:"MAHA-TIMEPASS YOG 🛋️",x:"Aaj kuch bhi productive nahi hoga. Mithu yeh bhavishyavani 100% guarantee ke saath karta hai. Ladna mat is se. Sofa aapka intezaar kar raha hai. Jao.",l:"upaay: koi upaay nahi. enjoy karo."}
+];
+let busy=false,lastFortune='';
+let AC=null,master=null;
+function ctx(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+  master=AC.createGain();master.gain.value=.8;master.connect(AC.destination);}return AC;}
+function squawk(){
+  const a=ctx(),t=a.currentTime;
+  [0,.16].forEach((off,i)=>{
+    const o=a.createOscillator(),g=a.createGain();
+    o.type='square';o.frequency.setValueAtTime(1100+i*300,t+off);
+    o.frequency.exponentialRampToValueAtTime(700,t+off+.12);
+    g.gain.setValueAtTime(.06,t+off);g.gain.exponentialRampToValueAtTime(.001,t+off+.13);
+    o.connect(g);g.connect(master);o.start(t+off);o.stop(t+off+.15);
+  });
+}
+function speak(txt,ms){
+  const s=document.getElementById('speech');
+  s.textContent=txt;s.style.display='block';
+  setTimeout(()=>s.style.display='none',ms);
+}
+document.getElementById('askBtn').addEventListener('click',function(){
+  if(busy)return;busy=true;this.disabled=true;
+  ctx().resume();
+  const tota=document.getElementById('tota');
+  const cards=[...document.querySelectorAll('.card')];
+  cards.forEach(c=>{c.classList.remove('pulled','dim');});
+  document.getElementById('fortune').style.display='none';
+  squawk();
+  speak('hmm... dekhta hoon...',2000);
+  /* walk to cards */
+  tota.classList.remove('flip');
+  tota.style.left='calc(100% - 210px)';
+  setTimeout(()=>{
+    squawk();
+    /* pick a card */
+    const pick=Math.floor(Math.random()*cards.length);
+    cards.forEach((c,i)=>{ if(i===pick)c.classList.add('pulled'); else c.classList.add('dim'); });
+    speak('yeh wala!',1600);
+    setTimeout(()=>{
+      /* walk back */
+      tota.classList.add('flip');
+      tota.style.left='52px';
+      setTimeout(()=>{
+        squawk();
+        const f=FORTUNES[Math.floor(Math.random()*FORTUNES.length)];
+        document.getElementById('fTitle').textContent=f.t;
+        document.getElementById('fText').textContent=f.x;
+        document.getElementById('fLucky').textContent=f.l+' · — Mithu ji, footpath university';
+        document.getElementById('fortune').style.display='block';
+        lastFortune=`🦜 Tota Bhavishya · ${f.t}\n${f.x}\n(${f.l})`;
+        busy=false;
+        document.getElementById('askBtn').disabled=false;
+        document.getElementById('askBtn').textContent='🦜 phir se poocho (Mithu ready hai)';
+      },2400);
+    },1700);
+  },2400);
+});
+document.getElementById('copyBtn').addEventListener('click',function(){
+  navigator.clipboard?.writeText(lastFortune).then(()=>{
+    this.textContent='✅ copied!';setTimeout(()=>this.textContent='📋 bhavishya copy karo',1500);});
+});
+</script>
+</body>
+</html>

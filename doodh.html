@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doodh — nazar hatao, doodh gaya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c;--milk:#fdf9ef}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+    background-image:radial-gradient(circle at 50% 110%, #34240f 0%, var(--dark) 55%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+  a.back{position:fixed;top:16px;left:16px;color:var(--haldi);font-size:13px;text-decoration:none}
+  .brand{background:var(--enamel);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;
+    transform:rotate(-1deg);box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:6px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(28px,5vw,42px);text-shadow:2px 2px 0 var(--red)}
+  .sub{color:#c9b790;font-size:13px;margin-bottom:22px}
+  #timer{font-family:'Yatra One',cursive;font-size:clamp(46px,10vw,84px);color:var(--haldi);text-shadow:3px 3px 0 var(--red);line-height:1}
+  #timerLbl{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#8a7750;margin-bottom:20px}
+
+  #pot{position:relative;width:min(300px,76vw);margin-bottom:10px}
+  svg{width:100%;display:block;overflow:visible}
+  #milkLevel{transition:height .8s linear, y .8s linear}
+  .froth{opacity:0;animation:froth 1.2s infinite}
+  .danger .froth{opacity:1}
+  @keyframes froth{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .flame{transform-origin:center bottom;animation:lick .3s infinite alternate}
+  @keyframes lick{from{transform:scaleY(1)}to{transform:scaleY(1.14) scaleX(.93)}}
+  #spillArt{opacity:0;transition:opacity .3s}
+  .spilled #spillArt{opacity:1}
+
+  #msg{font-size:15px;color:#c9b790;min-height:44px;max-width:440px;font-style:italic;margin-bottom:14px}
+  button{font-family:'Yatra One',cursive;font-size:19px;background:var(--red);color:var(--cream);
+    border:3px solid var(--haldi);border-radius:10px;padding:12px 28px;cursor:pointer;
+    box-shadow:4px 5px 0 rgba(0,0,0,.5);transition:transform .1s}
+  button:hover{transform:translateY(-2px)}
+  button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+  #best{margin-top:14px;font-size:12px;color:#8a7750;letter-spacing:.08em}
+  .warn{color:var(--red)!important;font-weight:700;font-style:normal!important}
+  @media (prefers-reduced-motion:reduce){.flame{animation:none}}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>दूध</h1></div>
+<p class="sub">DOODH · gas pe doodh hai · tab switch kiya = doodh gaya</p>
+
+<div id="timer">0s</div>
+<div id="timerLbl">doodh bachaye hue</div>
+
+<div id="pot">
+  <svg viewBox="0 0 300 260" aria-label="A pot of milk on a stove">
+    <!-- spill -->
+    <g id="spillArt">
+      <path d="M70 150 q-30 30 -20 60 q40 14 60 -8" fill="var(--milk)"/>
+      <path d="M230 150 q30 34 18 64 q-42 12 -58 -10" fill="var(--milk)"/>
+      <ellipse cx="150" cy="228" rx="120" ry="12" fill="var(--milk)"/>
+    </g>
+    <!-- pot -->
+    <path d="M75 90 h150 l-8 90 q-67 18 -134 0 z" fill="#b9c2cc"/>
+    <path d="M75 90 h150 l-2 16 h-146 z" fill="#98a1ac"/>
+    <rect x="38" y="98" width="40" height="12" rx="6" fill="#1f1a12"/>
+    <rect x="222" y="98" width="40" height="12" rx="6" fill="#1f1a12"/>
+    <!-- milk inside (clipped) -->
+    <clipPath id="potClip"><path d="M78 92 h144 l-8 86 q-64 17 -128 0 z"/></clipPath>
+    <g clip-path="url(#potClip)">
+      <rect id="milkLevel" x="60" y="150" width="180" height="120" fill="var(--milk)"/>
+      <g class="froth" fill="var(--milk)">
+        <circle id="f1" cx="110" cy="150" r="9"/>
+        <circle id="f2" cx="150" cy="148" r="11"/>
+        <circle id="f3" cx="190" cy="150" r="9"/>
+      </g>
+    </g>
+    <!-- stove -->
+    <rect x="55" y="196" width="190" height="14" rx="6" fill="#2b2b2b"/>
+    <rect x="75" y="210" width="150" height="28" rx="6" fill="#1c1c1c"/>
+    <g>
+      <path class="flame" d="M125 195 q3 -12 8 -15 q2 7 6 10 q3 4 -2 5 z" fill="#4aa3ff"/>
+      <path class="flame" d="M150 195 q3 -13 8 -16 q2 7 6 10 q3 4 -2 6 z" fill="#4aa3ff" style="animation-delay:.1s"/>
+      <path class="flame" d="M175 195 q3 -12 8 -15 q2 7 6 10 q3 4 -2 5 z" fill="#4aa3ff" style="animation-delay:.2s"/>
+    </g>
+  </svg>
+</div>
+
+<p id="msg">doodh chadha do. phir kahin mat jaana. KAHIN MAT JAANA.</p>
+<button id="startBtn">🥛 doodh chadhao</button>
+<p id="best">session best: —</p>
+
+<script>
+/* The mechanic: milk slowly rises toward the rim. While you WATCH (tab focused),
+   it froths up but auto-settles. The moment the tab is hidden, it boils over in ~2.5s. */
+let running=false,spilled=false,secs=0,level=0,tick=null,hiddenAt=null,best=0;
+const MSGS_SAFE=[
+  "bas dekhte raho. doodh ko pata hai tum yahin ho.",
+  "himmat hai toh doosra tab kholo. 😏",
+  "doodh shant hai. kyunki tum shant ho.",
+  "whatsapp check karne ka mann kar raha hai na? NA.",
+  "yeh doodh nahi, tumhara dhyan hai jo ubal raha hai."
+];
+const MSGS_DANGER=["UBAL RAHA HAI!! DEKHTE RAHO!!","froth aa gaya... nazar mat hatana...","bas bas bas... sambhal jayega..."];
+
+let AC=null,master=null;
+function ctx(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+  master=AC.createGain();master.gain.value=.85;master.connect(AC.destination);}return AC;}
+function noise(sec=2){const a=ctx(),b=a.createBuffer(1,a.sampleRate*sec,a.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b;}
+function simmerSound(){
+  const a=ctx(),src=a.createBufferSource();src.buffer=noise(3);src.loop=true;
+  const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=800;
+  const g=a.createGain();g.gain.value=.04;
+  src.connect(lp);lp.connect(g);g.connect(master);src.start();
+}
+function hissSpill(){
+  const a=ctx(),t=a.currentTime,src=a.createBufferSource();src.buffer=noise(2);
+  const bp=a.createBiquadFilter();bp.type='bandpass';bp.frequency.value=4000;bp.Q.value=.6;
+  const g=a.createGain();g.gain.setValueAtTime(.4,t);g.gain.exponentialRampToValueAtTime(.001,t+1.8);
+  src.connect(bp);bp.connect(g);g.connect(master);src.start(t);
+}
+function setLevel(v){ /* 0 calm .. 100 at rim */
+  level=Math.max(0,Math.min(100,v));
+  const y=150-level*.56, h=120+level*.56; /* rises from y150 to ~y94 */
+  const m=document.getElementById('milkLevel');
+  m.setAttribute('y',y);m.setAttribute('height',h);
+  ['f1','f2','f3'].forEach(id=>document.getElementById(id).setAttribute('cy',y));
+  document.getElementById('pot').classList.toggle('danger',level>55);
+}
+function say(t,warn){const m=document.getElementById('msg');m.textContent=t;m.classList.toggle('warn',!!warn);}
+function loop(){
+  if(!running)return;
+  secs++;
+  document.getElementById('timer').textContent=secs+'s';
+  document.title=`(${secs}s) Doodh — nazar hatao, doodh gaya`;
+  /* natural froth cycle while watched: creep up, auto settle */
+  if(level>60)setLevel(level-14);
+  else setLevel(level+ (4+Math.random()*7));
+  if(level>55&&Math.random()<.7)say(MSGS_DANGER[Math.floor(Math.random()*MSGS_DANGER.length)],true);
+  else if(secs%9===0)say(MSGS_SAFE[Math.floor(Math.random()*MSGS_SAFE.length)]);
+  tick=setTimeout(loop,1000);
+}
+function spill(awaySecs){
+  running=false;spilled=true;clearTimeout(tick);
+  setLevel(100);
+  document.getElementById('pot').classList.add('spilled');
+  hissSpill();
+  document.title='😭 DOODH GIR GAYA';
+  say(`DOODH GIR GAYA. tum ${awaySecs}s ke liye gaye the. gas ko farak nahi padta ki "bas ek notification" tha. 😭`,true);
+  if(secs>best){best=secs;document.getElementById('best').textContent='session best: '+best+'s doodh bachaya';}
+  const b=document.getElementById('startBtn');b.style.display='inline-block';b.textContent='🥛 naya doodh chadhao';
+}
+document.addEventListener('visibilitychange',()=>{
+  if(!running)return;
+  if(document.hidden){hiddenAt=Date.now();}
+  else if(hiddenAt){
+    const away=(Date.now()-hiddenAt)/1000;hiddenAt=null;
+    if(away>2.5)spill(Math.round(away));
+    else{setLevel(level+30);say(`wapas aa gaye?! ${away.toFixed(1)}s... doodh ekdum kagaar pe tha. 😅`,true);}
+  }
+});
+window.addEventListener('blur',()=>{ if(running&&!document.hidden){/* window unfocus = risky froth */ setLevel(level+18);} });
+document.getElementById('startBtn').addEventListener('click',function(){
+  ctx().resume();
+  if(!AC.__simmering){simmerSound();AC.__simmering=true;}
+  running=true;spilled=false;secs=0;setLevel(10);
+  document.getElementById('pot').classList.remove('spilled');
+  this.style.display='none';
+  say('doodh chadh gaya. ab yeh tab hi tumhari duniya hai.');
+  loop();
+});
+</script>
+</body>
+</html>

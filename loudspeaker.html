@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loudspeaker — suniye suniye suniye</title>
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+background-image:radial-gradient(circle at 50% -10%,#2a2115 0%,var(--dark) 60%);
+display:flex;flex-direction:column;align-items:center;padding:24px 14px 50px;text-align:center}
+a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:8px}
+.brand{background:var(--red);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;transform:rotate(-1deg);
+box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+.brand h1{font-family:'Yatra One',cursive;font-size:clamp(24px,5vw,38px);text-shadow:2px 2px 0 var(--enamel)}
+.sub{color:#c9b790;font-size:12px;margin-bottom:20px}
+#horn{font-size:clamp(70px,14vw,110px);transition:transform .1s}
+#horn.blast{animation:blast .5s}
+@keyframes blast{0%,100%{transform:scale(1)}30%{transform:scale(1.2) rotate(-6deg)}60%{transform:scale(1.1) rotate(5deg)}}
+#panel{width:min(540px,96vw);display:flex;flex-direction:column;gap:12px;margin-top:10px}
+select,input{width:100%;font-family:'Karla';font-size:15px;font-weight:700;padding:12px;border-radius:10px;
+border:3px solid var(--haldi);background:#241c10;color:var(--cream);outline:none}
+button{font-family:'Yatra One';font-size:19px;background:var(--red);color:var(--cream);border:3px solid var(--haldi);
+border-radius:10px;padding:13px;cursor:pointer;box-shadow:4px 5px 0 rgba(0,0,0,.5)}
+button:hover{transform:translateY(-2px)}
+button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+#announce{display:none;background:#fdf6e3;color:#26364a;border-radius:10px;padding:22px;box-shadow:0 14px 40px rgba(0,0,0,.5);
+font-size:17px;line-height:1.8;text-align:left;border-left:8px solid var(--red)}
+#announce b{color:var(--red)}
+#copyBtn{background:var(--enamel);font-family:'Karla';font-weight:700;font-size:14px;display:none}
+</style></head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>लाउडस्पीकर</h1></div>
+<p class="sub">LOUDSPEAKER · rickshaw pe bandha hua · pura mohalla sunega (chahe na chahe)</p>
+
+<div id="horn">📢</div>
+<div id="panel">
+  <select id="type" aria-label="Announcement type">
+    <option value="pani">💧 paani ka elaan</option>
+    <option value="light">⚡ bijli ka elaan</option>
+    <option value="lost">🐐 kho gaya elaan</option>
+    <option value="sale">🛒 sabzi/sale elaan</option>
+    <option value="event">🎪 mohalla event</option>
+    <option value="custom">✍️ apna elaan</option>
+  </select>
+  <input id="custom" maxlength="80" placeholder="apna elaan likho..." style="display:none" aria-label="Custom announcement">
+  <button id="genBtn">📢 ELAAN KARO</button>
+  <div id="announce"></div>
+  <button id="copyBtn">📋 elaan copy karo</button>
+</div>
+
+<script>
+const T={
+ pani:[['kal subah','parson','agle mangalvaar'],['paani nahi aayega','paani sirf aadha ghanta aayega','paani aayega — par kab, yeh paani hi jaanta hai'],['balti bhar ke rakhein','tanki full kar lein','padosi se panga na lein — paani sabka hai']],
+ light:[['aaj raat 8 baje se','kal din bhar','abhi thodi der mein'],['light jayegi','light aati-jaati rahegi (mood pe hai)','maintenance ke naam par light band rahegi'],['inverter charge kar lein','mombatti dhoondh lein abhi se','TV serial record karna bhool na jayein']],
+ lost:[['ek safed bakri','ek kala bachhda','sharma ji ka tota','ek cycle (bina ghanti wali)'],['subah se lapata hai','kal shaam se gayab hai','mandir ke paas aakhri baar dekha gaya'],['milne par turant khabar karein','pakadne ki koshish na karein — kaatta hai','inaam: dil se dua (cash nahi)']],
+ sale:[['taaza sabzi','aam hi aam','garam samose'],['aadhe daam par','aaj hi aaj','jab tak stock hai'],['jaldi karein','thela nukkad par khada hai','pehle aao pehle pao — dhakka mat do']],
+ event:[['is ravivaar','kal shaam','holi ke agle din'],['mohalla cricket tournament hoga','jagran hoga (neend cancel)','safai abhiyan hoga (sab aayein, koi nahi aayega)'],['sabki upasthiti anivarya hai','kursi apni laani hogi','prasad milega — yahi asli reason hai']]
+};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+let lastText='';
+let AC=null,master=null;
+function ctx(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+master=AC.createGain();master.gain.value=.8;master.connect(AC.destination);}return AC;}
+function hornSound(){
+  const a=ctx(),t=a.currentTime;
+  /* crackly PA feedback squeal + horn */
+  const o=a.createOscillator(),g=a.createGain();
+  o.type='sawtooth';o.frequency.setValueAtTime(400,t);o.frequency.linearRampToValueAtTime(520,t+.4);
+  const bp=a.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1200;bp.Q.value=2;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.12,t+.1);g.gain.linearRampToValueAtTime(0,t+.6);
+  o.connect(bp);bp.connect(g);g.connect(master);o.start(t);o.stop(t+.65);
+  const sq=a.createOscillator(),sg=a.createGain();
+  sq.type='sine';sq.frequency.setValueAtTime(2800,t+.5);sq.frequency.linearRampToValueAtTime(3400,t+.75);
+  sg.gain.setValueAtTime(0,t+.5);sg.gain.linearRampToValueAtTime(.05,t+.6);sg.gain.linearRampToValueAtTime(0,t+.85);
+  sq.connect(sg);sg.connect(master);sq.start(t+.5);sq.stop(t+.9);
+}
+function speak(txt){
+  try{if(!('speechSynthesis' in window))return;
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(txt);
+    const v=speechSynthesis.getVoices().find(v=>/hi[-_]IN/i.test(v.lang))||speechSynthesis.getVoices().find(v=>/en[-_]IN/i.test(v.lang));
+    if(v){u.voice=v;u.lang=v.lang;}
+    u.rate=.95;u.pitch=.85;speechSynthesis.speak(u);
+  }catch(e){}
+}
+document.getElementById('type').addEventListener('change',e=>{
+  document.getElementById('custom').style.display=e.target.value==='custom'?'block':'none';});
+document.getElementById('genBtn').addEventListener('click',()=>{
+  ctx().resume();hornSound();
+  const h=document.getElementById('horn');h.classList.remove('blast');void h.offsetWidth;h.classList.add('blast');
+  const ty=document.getElementById('type').value;
+  let body;
+  if(ty==='custom')body=document.getElementById('custom').value.trim()||'kuch toh hua hai, baad mein batayenge';
+  else{const [a,b,c]=T[ty];body=pick(a)+' '+pick(b)+'. Kripya '+pick(c)+'.';}
+  const full='SUNIYE SUNIYE SUNIYE!! Mohalla vasiyon se nivedan hai — '+body+' Dhanyavaad. (yeh elaan teen baar repeat hoga, marzi ho ya na ho.)';
+  const el=document.getElementById('announce');
+  el.style.display='block';
+  el.innerHTML='<b>📢 SUNIYE SUNIYE SUNIYE!!</b><br>Mohalla vasiyon se nivedan hai — '+body+'<br><b>Dhanyavaad.</b><br><small style="color:#8a7750">(yeh elaan teen baar repeat hoga, marzi ho ya na ho)</small>';
+  document.getElementById('copyBtn').style.display='block';
+  lastText=full;
+  setTimeout(()=>speak(full.replace('!!','.')),800);
+});
+document.getElementById('copyBtn').addEventListener('click',function(){
+  navigator.clipboard?.writeText(lastText).then(()=>{
+    this.textContent='✅ copied!';setTimeout(()=>this.textContent='📋 elaan copy karo',1500);});
+});
+if('speechSynthesis' in window)speechSynthesis.getVoices();
+</script>
+</body></html>

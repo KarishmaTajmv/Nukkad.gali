@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>mixtape.wtf — record it like it's 1997</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1e1a2b; --panel:#2b2540; --cassette:#e8e2d0; --cassette-dark:#c9c2ae;
+    --tape:#3a2a1a; --accent:#ff5e5b; --teal:#39c2b0; --ink:#efe9dc; --pencil:#2b3a8c;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:'Space Grotesk',sans-serif;background:
+      radial-gradient(circle at 20% 10%, #34294f 0%, var(--bg) 55%);
+    color:var(--ink);min-height:100vh;padding:24px 16px 80px;
+  }
+  header{text-align:center;margin-bottom:28px}
+  h1{font-family:'Kalam',cursive;font-weight:700;font-size:clamp(30px,6vw,52px);color:var(--accent);transform:rotate(-1deg)}
+  h1 span{color:var(--teal)}
+  header p{color:#9b93b8;font-size:14px;margin-top:4px}
+
+  main{max-width:960px;margin:0 auto;display:grid;grid-template-columns:1fr 1.2fr;gap:28px}
+  @media(max-width:800px){main{grid-template-columns:1fr}}
+
+  /* ---------- song shelf ---------- */
+  #shelf{background:var(--panel);border-radius:16px;padding:18px}
+  #shelf h2{font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:#9b93b8;margin-bottom:12px}
+  .song{
+    display:flex;align-items:center;gap:10px;background:#221c35;border:1px solid #3d3560;
+    border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:grab;transition:transform .12s,border-color .12s;
+  }
+  .song:active{cursor:grabbing}
+  .song:hover{transform:translateX(4px);border-color:var(--teal)}
+  .song.used{opacity:.35;pointer-events:none}
+  .song .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+  .song .name{font-weight:600;font-size:14px}
+  .song .len{margin-left:auto;font-size:12px;color:#9b93b8}
+  .song .preview{background:none;border:1px solid #4a4170;color:var(--ink);border-radius:6px;font-size:11px;padding:3px 8px;cursor:pointer}
+  .song .preview:hover{border-color:var(--teal)}
+
+  /* ---------- cassette ---------- */
+  #deck{display:flex;flex-direction:column;gap:18px}
+  #cassette{
+    background:linear-gradient(#f2ecda,var(--cassette) 30%,var(--cassette-dark));
+    border-radius:14px;padding:16px;box-shadow:0 14px 40px rgba(0,0,0,.45), inset 0 2px 0 #fff8;
+    position:relative;color:#333;
+  }
+  #cassette::before{content:'';position:absolute;left:14px;top:14px;width:8px;height:8px;border-radius:50%;background:#0004}
+  #cassette::after{content:'';position:absolute;right:14px;top:14px;width:8px;height:8px;border-radius:50%;background:#0004}
+  #labelArea{background:#fdf8e7;border:2px solid #d8cfae;border-radius:8px;padding:10px 14px;margin-bottom:12px;background-image:repeating-linear-gradient(#fdf8e7 0 26px,#e7dcbd 26px 27px)}
+  #tapeTitle{
+    width:100%;background:transparent;border:none;outline:none;
+    font-family:'Kalam',cursive;font-weight:700;font-size:24px;color:var(--pencil);
+  }
+  #tapeTitle::placeholder{color:#a9a184}
+  .sideRow{display:flex;gap:10px}
+  .side{
+    flex:1;min-height:120px;background:#efe7cd;border:2px dashed #b8ad88;border-radius:8px;padding:8px;transition:border-color .15s,background .15s;
+  }
+  .side.drag{border-color:var(--accent);background:#fff3ea}
+  .side h3{font-family:'Kalam',cursive;font-size:16px;color:#6b5b2e;margin-bottom:6px}
+  .side .slot{
+    font-family:'Kalam',cursive;font-size:15px;color:var(--pencil);
+    padding:2px 4px;display:flex;align-items:center;gap:6px;
+  }
+  .side .slot button{background:none;border:none;color:#c0392b;cursor:pointer;font-size:13px}
+  .side .empty{color:#b3a97f;font-size:12px;font-style:italic}
+
+  /* reels window */
+  #window{
+    margin-top:12px;background:#3a3428;border-radius:10px;height:86px;display:flex;align-items:center;justify-content:space-around;
+    position:relative;overflow:hidden;
+  }
+  .reel{width:58px;height:58px;border-radius:50%;background:radial-gradient(#fff 0 18%,#0000 18%),repeating-conic-gradient(#ddd 0 10deg,#aaa 10deg 20deg);
+    border:6px solid var(--tape);}
+  .reel.spin{animation:spin 1.6s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #tapePath{position:absolute;bottom:10px;left:15%;right:15%;height:3px;background:var(--tape)}
+
+  /* controls */
+  #controls{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{
+    flex:1;min-width:120px;font-family:'Space Grotesk';font-weight:600;font-size:15px;
+    padding:13px 10px;border-radius:10px;border:none;cursor:pointer;transition:transform .1s,opacity .1s;
+  }
+  .btn:hover{transform:translateY(-2px)}
+  .btn:focus-visible{outline:3px solid #fff;outline-offset:2px}
+  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  #recBtn{background:var(--accent);color:#fff}
+  #playBtn{background:var(--teal);color:#10221f}
+  #shareBtn{background:#4a4170;color:var(--ink)}
+  #stopBtn{background:#332c50;color:var(--ink)}
+
+  #status{font-size:13px;color:#9b93b8;text-align:center;min-height:20px}
+  #status.rec{color:var(--accent);font-weight:600}
+  #shareOut{
+    display:none;background:#221c35;border:1px solid var(--teal);border-radius:10px;padding:10px 12px;
+    font-size:12px;color:var(--teal);word-break:break-all;
+  }
+  @media (prefers-reduced-motion:reduce){.reel.spin{animation:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1>MIX·<span>TAPE</span> banao</h1>
+  <p>drag songs onto Side A / Side B · press REC · share the link with your crush</p>
+</header>
+
+<main>
+  <section id="shelf" aria-label="Song shelf">
+    <h2>🎵 Bhaiya ke paas yeh cassettes hain</h2>
+    <div id="songList"></div>
+  </section>
+
+  <section id="deck">
+    <div id="cassette">
+      <div id="labelArea">
+        <input id="tapeTitle" maxlength="26" placeholder="mixtape ka naam likho..." aria-label="Mixtape title">
+      </div>
+      <div class="sideRow">
+        <div class="side" id="sideA" data-side="A"><h3>SIDE A</h3><div class="empty">drop songs here…</div></div>
+        <div class="side" id="sideB" data-side="B"><h3>SIDE B</h3><div class="empty">drop songs here…</div></div>
+      </div>
+      <div id="window">
+        <div class="reel" id="reelL"></div>
+        <div id="tapePath"></div>
+        <div class="reel" id="reelR"></div>
+      </div>
+    </div>
+
+    <div id="controls">
+      <button class="btn" id="recBtn">⏺ REC</button>
+      <button class="btn" id="playBtn" disabled>▶ PLAY</button>
+      <button class="btn" id="stopBtn" disabled>⏹ STOP</button>
+      <button class="btn" id="shareBtn" disabled>🔗 SHARE</button>
+    </div>
+    <p id="status">side A khali hai — kuch daalo!</p>
+    <div id="shareOut"></div>
+  </section>
+</main>
+
+<script>
+/* ============ song catalogue (all original, all synthesized) ============ */
+const SONGS=[
+  {id:'sc', name:'Scooter Pe Sapne',      color:'#ff5e5b', root:262, scale:[0,2,4,7,9],  tempo:280, wave:'square',   len:'2:40'},
+  {id:'mn', name:'Monsoon Mein Antenna',  color:'#39c2b0', root:220, scale:[0,3,5,7,10], tempo:420, wave:'triangle', len:'3:05'},
+  {id:'rr', name:'Rickshaw Raag',         color:'#ffb347', root:196, scale:[0,1,5,7,8],  tempo:360, wave:'sawtooth', len:'2:55'},
+  {id:'dd', name:'Doordarshan Dreams',    color:'#b48cff', root:247, scale:[0,2,3,7,9],  tempo:500, wave:'sine',     len:'3:20'},
+  {id:'cc', name:'Colony Crush',          color:'#ff8fc7', root:294, scale:[0,2,4,7,9],  tempo:300, wave:'triangle', len:'2:30'},
+  {id:'ll', name:'Loadshedding Lullaby',  color:'#8fd0ff', root:175, scale:[0,3,5,8,10], tempo:560, wave:'sine',     len:'3:45'},
+  {id:'gc', name:'Gully Cricket Anthem',  color:'#9be564', root:330, scale:[0,2,4,7,9],  tempo:240, wave:'square',   len:'2:15'},
+  {id:'sb', name:'STD Booth Blues',       color:'#f2d349', root:208, scale:[0,3,5,6,10], tempo:400, wave:'sawtooth', len:'3:00'},
+];
+const byId=Object.fromEntries(SONGS.map(s=>[s.id,s]));
+const state={A:[],B:[],recorded:false};
+const MAX_PER_SIDE=4;
+
+/* ============ shelf render ============ */
+const list=document.getElementById('songList');
+SONGS.forEach(s=>{
+  const el=document.createElement('div');
+  el.className='song';el.draggable=true;el.dataset.id=s.id;el.id='song-'+s.id;
+  el.innerHTML=`<span class="dot" style="background:${s.color}"></span>
+    <span class="name">${s.name}</span><span class="len">${s.len}</span>
+    <button class="preview" aria-label="Preview ${s.name}">▶</button>`;
+  el.addEventListener('dragstart',e=>e.dataTransfer.setData('text/plain',s.id));
+  el.querySelector('.preview').addEventListener('click',e=>{e.stopPropagation();previewSong(s);});
+  /* tap-to-add for mobile */
+  el.addEventListener('click',()=>{ addSong(state.A.length<=state.B.length?'A':'B', s.id); });
+  list.appendChild(el);
+});
+
+/* ============ sides ============ */
+function renderSides(){
+  ['A','B'].forEach(side=>{
+    const box=document.getElementById('side'+side);
+    box.querySelectorAll('.slot,.empty').forEach(n=>n.remove());
+    if(!state[side].length){const e=document.createElement('div');e.className='empty';e.textContent='drop songs here…';box.appendChild(e);}
+    state[side].forEach((id,i)=>{
+      const s=byId[id],row=document.createElement('div');row.className='slot';
+      row.innerHTML=`${i+1}. ${s.name} <button aria-label="Remove">✕</button>`;
+      row.querySelector('button').addEventListener('click',()=>{state[side].splice(i,1);invalidate();renderSides();});
+      box.appendChild(row);
+    });
+  });
+  document.querySelectorAll('.song').forEach(el=>{
+    el.classList.toggle('used',state.A.includes(el.dataset.id)||state.B.includes(el.dataset.id));
+  });
+  const total=state.A.length+state.B.length;
+  setStatus(total? `${total} song${total>1?'s':''} loaded — REC dabao!` : 'side A khali hai — kuch daalo!');
+  document.getElementById('recBtn').disabled=!total;
+}
+function addSong(side,id){
+  if(state.A.includes(id)||state.B.includes(id))return;
+  if(state[side].length>=MAX_PER_SIDE){ if(state[side==='A'?'B':'A'].length<MAX_PER_SIDE)side=(side==='A'?'B':'A'); else return; }
+  state[side].push(id);invalidate();renderSides();
+}
+function invalidate(){state.recorded=false;
+  document.getElementById('playBtn').disabled=true;
+  document.getElementById('shareBtn').disabled=true;}
+
+['A','B'].forEach(side=>{
+  const box=document.getElementById('side'+side);
+  box.addEventListener('dragover',e=>{e.preventDefault();box.classList.add('drag');});
+  box.addEventListener('dragleave',()=>box.classList.remove('drag'));
+  box.addEventListener('drop',e=>{e.preventDefault();box.classList.remove('drag');
+    addSong(side,e.dataTransfer.getData('text/plain'));});
+});
+
+/* ============ audio engine ============ */
+let AC=null,master=null,tapeBus=null,hissNode=null,playing=false,queue=[],noteTimer=null;
+function ctx(){ if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+  master=AC.createGain();master.gain.value=.9;master.connect(AC.destination);
+  /* tape bus: lowpass + gentle wobble = warm cassette sound */
+  tapeBus=AC.createGain();tapeBus.gain.value=.8;
+  const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=3400;
+  tapeBus.connect(lp);lp.connect(master);}
+  return AC;}
+function noise(sec=2){const a=ctx();const b=a.createBuffer(1,a.sampleRate*sec,a.sampleRate);
+  const d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b;}
+function startHiss(vol=.012){stopHiss();const a=ctx();
+  const src=a.createBufferSource();src.buffer=noise(3);src.loop=true;
+  const hp=a.createBiquadFilter();hp.type='highpass';hp.frequency.value=5000;
+  const g=a.createGain();g.gain.value=vol;
+  src.connect(hp);hp.connect(g);g.connect(master);src.start();hissNode=src;}
+function stopHiss(){if(hissNode){try{hissNode.stop()}catch(e){}hissNode=null;}}
+
+function clickSound(){const a=ctx(),t=a.currentTime,o=a.createOscillator(),g=a.createGain();
+  o.type='square';o.frequency.value=900;
+  g.gain.setValueAtTime(.15,t);g.gain.exponentialRampToValueAtTime(.001,t+.05);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+.06);}
+
+/* play one song's generative pattern for `dur` ms, then callback */
+function playSongPattern(s,dur,done){
+  const a=ctx();let elapsed=0,step=0;
+  /* wobble the whole song: detune LFO */
+  const wob=Math.sin(Date.now())*0;
+  const tick=()=>{
+    if(!playing){return;}
+    const t=a.currentTime;
+    if(Math.random()>.15){
+      const deg=s.scale[Math.floor(Math.random()*s.scale.length)];
+      const oct=Math.random()<.2?2:1;
+      const f=s.root*Math.pow(2,deg/12)*oct*(1+Math.sin(t*1.7)*.004); /* tape wow */
+      const o=a.createOscillator(),g=a.createGain();
+      o.type=s.wave;o.frequency.value=f;
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.16,t+.02);
+      g.gain.exponentialRampToValueAtTime(.001,t+s.tempo/1000*1.7);
+      o.connect(g);g.connect(tapeBus);o.start(t);o.stop(t+s.tempo/1000*1.9);
+    }
+    if(step%4===0){ /* thump */
+      const o=a.createOscillator(),g=a.createGain();
+      o.type='sine';o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(50,t+.11);
+      g.gain.setValueAtTime(.3,t);g.gain.exponentialRampToValueAtTime(.001,t+.15);
+      o.connect(g);g.connect(tapeBus);o.start(t);o.stop(t+.18);}
+    if(step%8===4){ /* offbeat tick */
+      const src=a.createBufferSource();src.buffer=noise(.1);
+      const hp=a.createBiquadFilter();hp.type='highpass';hp.frequency.value=6000;
+      const g=a.createGain();g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.001,t+.06);
+      src.connect(hp);hp.connect(g);g.connect(tapeBus);src.start(t);}
+    step++;elapsed+=s.tempo;
+    if(elapsed>=dur){done();return;}
+    noteTimer=setTimeout(tick,s.tempo);
+  };
+  tick();
+}
+function previewSong(s){ if(playing)return; ctx().resume(); playing=true; spin(true);
+  setStatus('preview: '+s.name);
+  playSongPattern(s,4000,()=>{playing=false;spin(false);renderSides();});}
+
+/* ============ record / play / share ============ */
+const SONG_PLAY_MS=8000; /* each song plays 8s in the mix */
+function spin(on){document.getElementById('reelL').classList.toggle('spin',on);
+  document.getElementById('reelR').classList.toggle('spin',on);}
+function setStatus(msg,rec){const st=document.getElementById('status');st.textContent=msg;st.classList.toggle('rec',!!rec);}
+
+document.getElementById('recBtn').addEventListener('click',()=>{
+  ctx().resume(); clickSound(); startHiss(.02); spin(true);
+  setStatus('⏺ RECORDING… reels ghoom rahe hain',true);
+  document.getElementById('recBtn').disabled=true;
+  setTimeout(()=>{ stopHiss(); spin(false); clickSound();
+    state.recorded=true;
+    setStatus('✅ tape ready! PLAY ya SHARE karo');
+    document.getElementById('playBtn').disabled=false;
+    document.getElementById('shareBtn').disabled=false;
+    document.getElementById('recBtn').disabled=false;
+  },2600);
+});
+
+document.getElementById('playBtn').addEventListener('click',()=>{
+  if(playing)return; ctx().resume();
+  queue=[...state.A,...state.B].map(id=>byId[id]);
+  if(!queue.length)return;
+  playing=true; spin(true); startHiss(.008); clickSound();
+  document.getElementById('stopBtn').disabled=false;
+  let i=0;
+  const next=()=>{
+    if(!playing||i>=queue.length){stopAll();return;}
+    const s=queue[i];
+    setStatus(`▶ now playing ${i+1}/${queue.length}: ${s.name}`);
+    i++; playSongPattern(s,SONG_PLAY_MS,()=>setTimeout(next,400));
+  };
+  next();
+});
+function stopAll(){playing=false;spin(false);stopHiss();
+  if(noteTimer)clearTimeout(noteTimer);
+  document.getElementById('stopBtn').disabled=true;
+  setStatus(state.recorded?'tape ready — PLAY ya SHARE karo':'');}
+document.getElementById('stopBtn').addEventListener('click',()=>{clickSound();stopAll();});
+
+document.getElementById('shareBtn').addEventListener('click',()=>{
+  const title=encodeURIComponent(document.getElementById('tapeTitle').value||'meri mixtape');
+  const hash=`#t=${title}&a=${state.A.join(',')}&b=${state.B.join(',')}`;
+  const url=location.origin+location.pathname+hash;
+  history.replaceState(null,'',hash);
+  const out=document.getElementById('shareOut');
+  out.style.display='block'; out.textContent=url;
+  navigator.clipboard?.writeText(url).then(()=>setStatus('🔗 link copied! bhej do jisko bhejna hai'))
+    .catch(()=>setStatus('🔗 link ready — copy it below'));
+});
+
+/* load a shared tape from URL */
+(function loadFromHash(){
+  if(!location.hash)return;
+  const p=new URLSearchParams(location.hash.slice(1));
+  const clean=v=>(v||'').split(',').filter(id=>byId[id]).slice(0,MAX_PER_SIDE);
+  state.A=clean(p.get('a')); state.B=clean(p.get('b'));
+  const t=p.get('t'); if(t)document.getElementById('tapeTitle').value=decodeURIComponent(t).slice(0,26);
+  if(state.A.length+state.B.length){state.recorded=true;
+    document.getElementById('playBtn').disabled=false;
+    document.getElementById('shareBtn').disabled=false;
+    setStatus('📼 kisi ne tumhe mixtape bheji hai — PLAY dabao!');}
+})();
+renderSides();
+if(location.hash&&(state.A.length+state.B.length))setStatus('📼 kisi ne tumhe mixtape bheji hai — PLAY dabao!');
+</script>
+</body>
+</html>

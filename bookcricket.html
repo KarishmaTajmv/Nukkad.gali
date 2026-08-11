@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book Cricket — asli RNG</title>
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+background-image:radial-gradient(circle at 50% -10%,#2a2115 0%,var(--dark) 60%);
+display:flex;flex-direction:column;align-items:center;padding:24px 14px 50px;text-align:center}
+a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:8px}
+.brand{background:var(--enamel);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;transform:rotate(-1deg);
+box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+.brand h1{font-family:'Yatra One',cursive;font-size:clamp(24px,5vw,38px);text-shadow:2px 2px 0 var(--red)}
+.sub{color:#c9b790;font-size:12px;margin-bottom:20px}
+#book{width:min(300px,80vw);height:200px;background:#fdf6e3;border-radius:6px 14px 14px 6px;cursor:pointer;
+position:relative;box-shadow:0 12px 30px rgba(0,0,0,.5), inset -14px 0 24px rgba(0,0,0,.12);
+border-left:14px solid #7a1428;display:flex;align-items:center;justify-content:center;user-select:none;transition:transform .08s}
+#book:active{transform:scale(.98)}
+#book:focus-visible{outline:3px solid var(--haldi);outline-offset:4px}
+#pageNo{font-family:'Yatra One';font-size:56px;color:#26364a}
+#runLbl{position:absolute;bottom:10px;font-size:12px;color:#8a7750;width:100%}
+#score{margin-top:18px;font-family:'Yatra One';font-size:clamp(34px,8vw,54px);color:var(--haldi);text-shadow:3px 3px 0 var(--red)}
+#info{font-size:13px;color:#c9b790;margin-top:4px;min-height:20px}
+#target{font-size:13px;color:#8a7750;margin-top:8px}
+#target b{color:var(--haldi)}
+#res{display:none;margin-top:14px;font-family:'Yatra One';font-size:24px;color:var(--haldi)}
+button{margin-top:14px;font-family:'Yatra One';font-size:17px;background:var(--red);color:var(--cream);
+border:3px solid var(--haldi);border-radius:10px;padding:10px 24px;cursor:pointer;box-shadow:4px 5px 0 rgba(0,0,0,.5)}
+.rules{margin-top:16px;font-size:11px;color:#6b5b3a;max-width:340px;line-height:1.6}
+</style></head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>बुक क्रिकेट</h1></div>
+<p class="sub">BOOK CRICKET · period ke beech wala · maths ki kitab best hoti thi</p>
+
+<div id="book" tabindex="0" role="button" aria-label="Flip a page"><span id="pageNo">📖</span><span id="runLbl">page kholne ke liye tap karo</span></div>
+<div id="score">0/0</div>
+<p id="info">target banao ya chase karo — pehle AAP ballebazi</p>
+<p id="target">wickets bache: <b id="wkts">10</b> · AI ka target: <b id="tgt">?</b></p>
+<div id="res"></div>
+<button id="againBtn" style="display:none">🏏 nayi innings</button>
+
+<script>
+/* last digit rules: 0=OUT, 2/4/6=runs, 8=1 run, odd=dot ball (school edition) */
+let runs=0,wkts=10,phase='you',aiTarget=null,over=false;
+function digitToRuns(d){if(d===0)return 'OUT';if(d===8)return 1;if(d%2===0)return d;return 0;}
+function flip(){
+  if(over)return;
+  const a=ctx();a.resume();flipSound();
+  const page=100+Math.floor(Math.random()*800);
+  const d=page%10;
+  document.getElementById('pageNo').textContent=page;
+  const r=digitToRuns(d);
+  if(r==='OUT'){wkts--;shout('OUT!! 💔 (page '+page+')');
+    if(wkts<=0){endInnings();return;}}
+  else{runs+=r;shout(r===0?'dot ball. ('+page+')':'+'+r+' runs! ('+page+')');}
+  document.getElementById('score').textContent=runs+'/'+(10-wkts);
+  document.getElementById('wkts').textContent=wkts;
+  if(phase==='chase'&&runs>aiTarget){win(true);}
+}
+function endInnings(){
+  if(phase==='you'){
+    aiTarget=runs;phase='ai';
+    document.getElementById('tgt').textContent=(aiTarget+1)+' (aapka score defend karo)';
+    shout('innings khatam! ab AI khelega... (AI = doosra haath)');
+    setTimeout(aiPlay,1200);
+  }else win(false);
+}
+function aiPlay(){
+  /* AI chases with same RNG, shown fast */
+  let aR=0,aW=10;
+  const iv=setInterval(()=>{
+    const page=100+Math.floor(Math.random()*800);
+    const r=digitToRuns(page%10);
+    if(r==='OUT'){aW--;}else aR+=r;
+    document.getElementById('score').textContent='AI: '+aR+'/'+(10-aW);
+    flipSound();
+    if(aR>aiTarget){clearInterval(iv);win(false);}
+    if(aW<=0){clearInterval(iv);win(aR<aiTarget?true:aR===aiTarget?'tie':false);}
+  },420);
+  over=true;
+}
+function win(youWon){
+  over=true;
+  const r=document.getElementById('res');r.style.display='block';
+  r.textContent=youWon==='tie'?'TIE!! super over ke liye nayi kitab lao 📚':
+    youWon?'AAP JEET GAYE 🏆 pura class aapko cheer kar raha hai':'AI jeet gaya 🤖 kitab hi kharab thi, sach mein';
+  document.getElementById('againBtn').style.display='inline-block';
+}
+function shout(t){document.getElementById('info').textContent=t;}
+let AC=null,master=null;
+function ctx(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+master=AC.createGain();master.gain.value=.7;master.connect(AC.destination);}return AC;}
+function flipSound(){const a=ctx(),t=a.currentTime;
+const b=a.createBuffer(1,a.sampleRate*.08,a.sampleRate),d=b.getChannelData(0);
+for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);
+const s=a.createBufferSource();s.buffer=b;
+const hp=a.createBiquadFilter();hp.type='highpass';hp.frequency.value=1800;
+const g=a.createGain();g.gain.value=.2;s.connect(hp);hp.connect(g);g.connect(master);s.start(t);}
+document.getElementById('book').addEventListener('click',flip);
+document.getElementById('book').addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();flip();}});
+document.getElementById('againBtn').addEventListener('click',()=>location.reload());
+</script>
+</body></html>

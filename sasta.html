@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sasta Internet — 2G ki yaadein</title>
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+    background-image:radial-gradient(circle at 50% -10%,#2a2115 0%,var(--dark) 60%);
+    display:flex;flex-direction:column;align-items:center;padding:26px 14px 60px}
+  a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:8px}
+  .brand{background:var(--enamel);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;transform:rotate(-1deg);
+    box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(24px,5vw,38px);text-shadow:2px 2px 0 var(--red)}
+  .sub{color:#c9b790;font-size:12px;margin-bottom:18px;text-align:center}
+  #panel{width:min(560px,96vw);display:flex;flex-direction:column;gap:12px}
+  #bar{display:flex;align-items:center;gap:8px;background:#241c10;border:2px solid #3a2f1c;border-radius:10px;padding:8px 12px;font-size:12px;color:#8a7750}
+  #sig{letter-spacing:1px}#kbps{margin-left:auto;color:var(--haldi);font-weight:700}
+  textarea{width:100%;height:80px;font-family:'Karla';font-size:15px;padding:12px;border-radius:10px;
+    border:3px solid var(--haldi);background:#241c10;color:var(--cream);outline:none;resize:vertical}
+  button{font-family:'Karla';font-weight:700;font-size:15px;background:var(--red);color:var(--cream);
+    border:none;border-radius:10px;padding:13px 20px;cursor:pointer}
+  button:hover{transform:translateY(-2px)}
+  button:focus-visible{outline:3px solid var(--cream);outline-offset:2px}
+  button:disabled{opacity:.4;cursor:wait;transform:none}
+  #out{background:#fff;color:#222;border-radius:10px;min-height:180px;padding:16px;font-size:15px;line-height:1.6;position:relative}
+  #out .buffering{display:inline-flex;align-items:center;gap:8px;color:#888;font-size:13px;font-style:italic}
+  .spin{width:14px;height:14px;border:2px solid #ccc;border-top-color:#12409e;border-radius:50%;animation:sp .8s linear infinite;display:inline-block}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  #progress{height:8px;background:#241c10;border-radius:6px;overflow:hidden;border:1px solid #3a2f1c}
+  #progFill{height:100%;width:0%;background:var(--haldi);transition:width .3s}
+  #imgDemo{margin-top:4px}
+  #imgDemo canvas{width:100%;border-radius:10px;display:block;background:#e8e8e8}
+  .note{font-size:11px;color:#8a7750;text-align:center}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>सस्ता इंटरनेट</h1></div>
+<p class="sub">SASTA INTERNET · 2G unlimited pack (₹98) · "unlimited" ka matlab aap jaante ho</p>
+
+<div id="panel">
+  <div id="bar"><span id="sig">▂ ▄ _ _ _</span><span>AirWave 2G · E</span><span id="kbps">4.2 kbps</span></div>
+  <textarea id="input" placeholder="kuch bhi type karo... yeh 2026 ki speed se jayega, 2009 ki speed se aayega" aria-label="Your message"></textarea>
+  <button id="sendBtn">📡 SEND KARO (himmat hai toh)</button>
+  <div id="progress"><div id="progFill"></div></div>
+  <div id="out"><span style="color:#888;font-style:italic">yahan aapka message "load" hoga...</span></div>
+  <div id="imgDemo">
+    <button id="imgBtn" style="width:100%;background:#12409e">🖼️ ek photo bhi load karo (himmat level: MAX)</button>
+    <canvas id="imgCv" width="520" height="300" style="display:none"></canvas>
+  </div>
+  <p class="note">koi asli internet use nahi hota. dard 100% asli hai.</p>
+</div>
+
+<script>
+const out=document.getElementById('out'),fill=document.getElementById('progFill');
+let busy=false;
+const BUFFER_MSGS=['buffering...','connecting to tower...','tower se jhagda chal raha hai...','signal dhoondh rahe hain (chhat pe jao?)','ek dost ne kaha phone upar uthao...','retrying (13 of 99)...'];
+function sigDance(){
+  const bars=['▂ _ _ _ _','▂ ▄ _ _ _','▂ ▄ ▅ _ _','▂ _ _ _ _','_ _ _ _ _'];
+  document.getElementById('sig').textContent=bars[Math.floor(Math.random()*bars.length)];
+  document.getElementById('kbps').textContent=(1+Math.random()*6).toFixed(1)+' kbps';
+}
+setInterval(sigDance,1500);
+document.getElementById('sendBtn').addEventListener('click',async function(){
+  if(busy)return;
+  const txt=document.getElementById('input').value.trim()||'hello?? pahuncha kya??';
+  busy=true;this.disabled=true;
+  out.innerHTML='<span class="buffering"><span class="spin"></span> sending...</span>';
+  let p=0;fill.style.width='0%';
+  /* upload phase */
+  await crawl(0,38,120);
+  out.innerHTML='<span class="buffering"><span class="spin"></span> '+BUFFER_MSGS[0]+'</span>';
+  await crawl(38,61,200);
+  /* the stall */
+  out.innerHTML='<span class="buffering"><span class="spin"></span> '+BUFFER_MSGS[Math.floor(Math.random()*BUFFER_MSGS.length)]+'</span>';
+  await wait(1800+Math.random()*2200);
+  /* the 90% heartbreak (30% chance) */
+  if(Math.random()<.3){
+    await crawl(61,91,150);
+    out.innerHTML='<span style="color:#c0392b;font-weight:700">❌ Connection reset. Phir se bhejo. (91% pe. NINETY ONE.)</span>';
+    fill.style.width='0%';busy=false;this.disabled=false;return;
+  }
+  await crawl(61,100,170);
+  /* character-by-character render with mid-word stalls */
+  out.innerHTML='';
+  for(let i=0;i<txt.length;i++){
+    out.textContent+=txt[i];
+    if(Math.random()<.06){
+      const b=document.createElement('span');b.className='buffering';
+      b.innerHTML=' <span class="spin"></span>';out.appendChild(b);
+      await wait(700+Math.random()*1400);b.remove();
+    }else await wait(60+Math.random()*130);
+  }
+  out.textContent+='  ✓✓';
+  const el=document.createElement('div');
+  el.style.cssText='margin-top:10px;font-size:12px;color:#888;font-style:italic';
+  el.textContent='delivered · sirf '+(8+Math.floor(Math.random()*20))+' second lage · 2009 mein yeh FAST tha';
+  out.appendChild(el);
+  busy=false;this.disabled=false;
+});
+async function crawl(from,to,step){
+  for(let p=from;p<=to;p+=1+Math.random()*2){
+    fill.style.width=Math.min(to,p)+'%';
+    await wait(step+Math.random()*step);
+  }
+}
+function wait(ms){return new Promise(r=>setTimeout(r,ms));}
+/* the image loader: reveals top-to-bottom in agonizing strips */
+document.getElementById('imgBtn').addEventListener('click',async function(){
+  if(busy)return;busy=true;this.disabled=true;
+  const cv=document.getElementById('imgCv'),g=cv.getContext('2d');
+  cv.style.display='block';
+  g.fillStyle='#e8e8e8';g.fillRect(0,0,520,300);
+  g.fillStyle='#999';g.font='16px Karla';g.textAlign='center';
+  g.fillText('photo load ho rahi hai... (2G pe photo. bold choice.)',260,150);
+  /* the hidden picture: a sunset scene drawn in strips */
+  const draw=(y0,y1)=>{
+    for(let y=y0;y<y1;y++){
+      const t=y/300;
+      const r=Math.round(255*(1-t*.3)),gr=Math.round(160*(1-t*.5)),b=Math.round(80+t*40);
+      g.fillStyle=y<190?`rgb(${r},${gr},${b})`:'#2a4a2a';
+      g.fillRect(0,y,520,1);
+    }
+    if(y1>110&&y0<150){g.fillStyle='#ffdf8a';g.beginPath();g.arc(260,130,34,0,7);g.fill();}
+    if(y1>=190){g.fillStyle='#1a2d1a';
+      for(let x=30;x<520;x+=90){g.fillRect(x,190-28,8,28);g.beginPath();g.arc(x+4,190-34,18,0,7);g.fill();}}
+  };
+  let y=0;
+  while(y<300){
+    const chunk=8+Math.floor(Math.random()*22);
+    draw(y,Math.min(300,y+chunk));y+=chunk;
+    await wait(500+Math.random()*1300);
+    if(Math.random()<.12){ /* mid-photo stall with grey band */
+      g.fillStyle='#e8e8e8';g.fillRect(0,y,520,300-y);
+      await wait(1500+Math.random()*1500);
+    }
+  }
+  g.fillStyle='#fff';g.font='bold 14px Karla';g.textAlign='right';
+  g.fillText('finally. — sasta internet',505,290);
+  busy=false;this.disabled=false;this.textContent='🖼️ phir load karo (kyun??)';
+});
+</script>
+</body>
+</html>

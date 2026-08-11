@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dadi Ke Nuskhe — haldi is the answer</title>
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Kalam:wght@400;700&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+background-image:radial-gradient(circle at 50% -10%,#2a2115 0%,var(--dark) 60%);
+display:flex;flex-direction:column;align-items:center;padding:24px 14px 50px}
+a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:8px}
+.brand{background:var(--haldi);border:4px solid var(--red);border-radius:6px;padding:8px 26px;transform:rotate(-1deg);
+box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+.brand h1{font-family:'Yatra One',cursive;font-size:clamp(24px,5vw,38px);color:var(--dark);text-shadow:2px 2px 0 rgba(255,255,255,.4)}
+.sub{color:#c9b790;font-size:12px;margin-bottom:20px;text-align:center}
+#panel{width:min(540px,96vw);display:flex;flex-direction:column;gap:12px}
+input{width:100%;font-family:'Karla';font-size:16px;font-weight:700;padding:13px 15px;border-radius:10px;
+border:3px solid var(--haldi);background:#241c10;color:var(--cream);outline:none}
+input::placeholder{color:#8a7750;font-weight:400}
+button{font-family:'Yatra One';font-size:19px;background:var(--red);color:var(--cream);border:3px solid var(--haldi);
+border-radius:10px;padding:13px;cursor:pointer;box-shadow:4px 5px 0 rgba(0,0,0,.5)}
+button:hover{transform:translateY(-2px)}
+button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+#card{display:none;background:#fdf6e3;color:#26364a;border-radius:10px;padding:24px;box-shadow:0 14px 40px rgba(0,0,0,.5);
+border-top:8px solid var(--haldi)}
+#card h2{font-family:'Yatra One';color:var(--red);font-size:22px;margin-bottom:4px}
+#card .prob{font-size:13px;color:#6b5b3a;font-style:italic;margin-bottom:14px}
+#steps{font-family:'Kalam';font-size:18px;line-height:1.9;color:#1a3a8c}
+#dadi{margin-top:14px;padding-top:12px;border-top:2px dashed #d8cfae;font-size:14px;color:#6b5b3a;font-style:italic}
+.note{font-size:11px;color:#8a7750;text-align:center}
+</style></head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>दादी के नुस्खे</h1></div>
+<p class="sub">DADI KE NUSKHE · 5000 saal ka R&D · side effect: pyaar</p>
+
+<div id="panel">
+  <input id="prob" maxlength="60" placeholder="kya hua? (e.g. 'sar dard', 'dil toota', 'wifi slow')" aria-label="Your problem">
+  <button id="genBtn">🫚 nuskha do dadi</button>
+  <div id="card">
+    <h2>DADI-CERTIFIED NUSKHA</h2>
+    <p class="prob" id="probEcho"></p>
+    <div id="steps"></div>
+    <div id="dadi" aria-live="polite"></div>
+  </div>
+  <p class="note">disclaimer: asli bimari mein doctor ke paas jao — dadi khud yahi kehti hain (phir haldi bhi deti hain)</p>
+</div>
+
+<script>
+const STEP1=['Sabse pehle haldi wala doodh. Garam. Poora glass. Nak-bhaun mat sikodo.',
+'Shuruaat haldi se hogi. Haldi se hi hoti hai. Yeh niyam hai, sawal nahi.',
+'Pehle haldi-doodh piyo. Haan, wahi peela wala. Haan, abhi.'];
+const STEP2=['Phir adrak ko koot ke shahad ke saath chaato — muh mat banao, dawa hai.',
+'Ajwain ko tave pe garam karke potli banao, aur jahan taklif hai wahan seko.',
+'Tulsi ke 5 patte chabao. 4 nahi, 6 nahi — PAANCH.',
+'Methi daana raat bhar bhigo ke subah khali pet. Swad ki umeed mat rakhna.',
+'Lehsun ki 2 kali sarson ke tel mein garam karke... tum samajh gaye hoge kahan lagana hai.'];
+const STEP3=['Phir kaan dhak ke so jao. Aadhi bimari thand se hoti hai, aadhi phone se.',
+'Phir muh dhak ke ek neend maaro. Neend se badi dawa banayi nahi gayi ab tak.',
+'Aur haan — thanda paani BAND. Fridge ki taraf dekhna bhi mana hai.',
+'Shaam ko sirf khichdi. Ghee daal ke. Ghee dawa hai, moh nahi.'];
+const DADI_LINES=['"Hamare zamane mein yeh sab ek adrak se theek ho jaata tha."',
+'"Doctor ke paas jaoge toh woh bhi yahi bolega, bas ₹500 lega."',
+'"Yeh sab phone se hota hai. Likh ke le lo."',
+'"Kal subah tak theek nahi hue toh mere paas aana, kaan garam kar dungi — woh bhi nuskha hai."',
+'"Beta bimari sharir mein baad mein aati hai, pehle zid mein aati hai."'];
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+document.getElementById('genBtn').addEventListener('click',()=>{
+  const p=document.getElementById('prob').value.trim()||'kuch theek nahi lag raha';
+  document.getElementById('probEcho').textContent='shikayat: "'+p+'"';
+  document.getElementById('steps').innerHTML=
+    '1. '+pick(STEP1)+'<br>2. '+pick(STEP2)+'<br>3. '+pick(STEP3);
+  document.getElementById('dadi').textContent='— dadi, haath mein katori liye: '+pick(DADI_LINES);
+  document.getElementById('card').style.display='block';
+});
+document.getElementById('prob').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('genBtn').click();});
+</script>
+</body></html>

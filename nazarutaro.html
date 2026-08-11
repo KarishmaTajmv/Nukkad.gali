@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nazar Utaro — 7 din valid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+    background-image:radial-gradient(circle at 50% -10%, #2a2115 0%, var(--dark) 60%);
+    display:flex;flex-direction:column;align-items:center;padding:26px 14px 60px;text-align:center;overflow-x:hidden}
+  a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:8px}
+  .brand{background:var(--red);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;
+    transform:rotate(-1deg);box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(26px,5vw,40px);text-shadow:2px 2px 0 var(--enamel)}
+  .sub{color:#c9b790;font-size:12px;margin-bottom:24px}
+
+  #eye{font-size:clamp(70px,16vw,120px);margin:10px 0;filter:grayscale(0);transition:filter 1s}
+  #eye.cleared{filter:grayscale(1) opacity(.35)}
+  #symptoms{max-width:420px;font-size:14px;color:#c9b790;line-height:1.7;margin-bottom:18px}
+  #symptoms label{display:flex;gap:10px;align-items:center;text-align:left;padding:6px 10px;background:#241c10;
+    border:1px solid #3a2f1c;border-radius:8px;margin-bottom:6px;cursor:pointer}
+  #symptoms input{accent-color:var(--red);width:16px;height:16px}
+
+  button{font-family:'Yatra One',cursive;font-size:19px;background:var(--red);color:var(--cream);
+    border:3px solid var(--haldi);border-radius:10px;padding:12px 28px;cursor:pointer;box-shadow:4px 5px 0 rgba(0,0,0,.5)}
+  button:hover{transform:translateY(-2px)}
+  button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+  button:disabled{opacity:.4;cursor:wait;transform:none}
+
+  /* ritual actors */
+  #mirchi{position:fixed;font-size:44px;z-index:50;display:none;pointer-events:none;
+    filter:drop-shadow(0 0 8px rgba(213,52,43,.6))}
+  #jhadu{position:fixed;font-size:54px;z-index:50;display:none;pointer-events:none}
+  #ritualMsg{position:fixed;top:18vh;left:50%;transform:translateX(-50%);z-index:51;display:none;
+    font-family:'Yatra One',cursive;font-size:clamp(22px,5vw,38px);color:var(--haldi);
+    text-shadow:3px 3px 0 var(--red);white-space:nowrap}
+  #smoke{position:fixed;inset:0;background:radial-gradient(circle at 50% 60%, rgba(200,190,170,.25), transparent 60%);
+    opacity:0;transition:opacity 1.5s;pointer-events:none;z-index:49}
+
+  #receiptWrap{display:none;flex-direction:column;align-items:center;gap:12px;width:min(480px,94vw);margin-top:20px}
+  canvas{width:100%;border-radius:8px;box-shadow:0 14px 40px rgba(0,0,0,.5)}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>नज़र उतारो</h1></div>
+<p class="sub">NAZAR UTARO · digital jhaad-phoonk seva · 100% contactless · receipt ke saath</p>
+
+<div id="eye">🧿</div>
+
+<div id="symptoms">
+  <p style="margin-bottom:10px">pehle bataiye, lakshan kya hain? (jitne lagoo hon)</p>
+  <label><input type="checkbox" checked> kaam bante bante bigad jaata hai</label>
+  <label><input type="checkbox"> phone baar baar haath se girta hai</label>
+  <label><input type="checkbox"> chai har baar thandi mil rahi hai</label>
+  <label><input type="checkbox"> log kuch zyada hi taareef kar rahe the recently 🤨</label>
+  <label><input type="checkbox"> Monday kuch zyada hi Monday lag raha hai</label>
+</div>
+
+<button id="startBtn">🌶️ nazar utaro (shuru karein)</button>
+
+<div id="mirchi">🌶️🍋</div>
+<div id="jhadu">🧹</div>
+<div id="ritualMsg"></div>
+<div id="smoke"></div>
+
+<div id="receiptWrap">
+  <canvas id="receipt" width="800" height="1000"></canvas>
+  <button id="dlBtn">⬇️ receipt download karo (proof rakho)</button>
+</div>
+
+<script>
+let AC=null,master=null;
+function ctx(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+  master=AC.createGain();master.gain.value=.85;master.connect(AC.destination);}return AC;}
+function noise(sec=1){const a=ctx(),b=a.createBuffer(1,a.sampleRate*sec,a.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b;}
+function swish(){
+  const a=ctx(),t=a.currentTime,src=a.createBufferSource();src.buffer=noise(.5);
+  const bp=a.createBiquadFilter();bp.type='bandpass';bp.Q.value=1.2;
+  bp.frequency.setValueAtTime(600,t);bp.frequency.linearRampToValueAtTime(3200,t+.25);
+  const g=a.createGain();g.gain.setValueAtTime(.2,t);g.gain.exponentialRampToValueAtTime(.001,t+.4);
+  src.connect(bp);bp.connect(g);g.connect(master);src.start(t);
+}
+function bellDing(){
+  const a=ctx(),t=a.currentTime;
+  [1760,2093,2637].forEach((f,i)=>{
+    const o=a.createOscillator(),g=a.createGain();
+    o.type='sine';o.frequency.value=f;
+    g.gain.setValueAtTime(.12/(i+1),t);g.gain.exponentialRampToValueAtTime(.0001,t+1.8);
+    o.connect(g);g.connect(master);o.start(t);o.stop(t+2);
+  });
+}
+function thoo(n,done){
+  const a=ctx();let i=0;
+  const one=()=>{const t=a.currentTime;
+    const src=a.createBufferSource();src.buffer=noise(.12);
+    const bp=a.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1500;bp.Q.value=2;
+    const g=a.createGain();g.gain.setValueAtTime(.3,t);g.gain.exponentialRampToValueAtTime(.001,t+.1);
+    src.connect(bp);bp.connect(g);g.connect(master);src.start(t);
+    document.getElementById('ritualMsg').textContent='थू '.repeat(i+1);
+    if(++i<n)setTimeout(one,420);else setTimeout(done,600);};
+  one();
+}
+function msg(t){const m=document.getElementById('ritualMsg');m.style.display='block';m.textContent=t;}
+function circleElement(el,revs,dur,done){
+  el.style.display='block';
+  const cx=window.innerWidth/2,cy=window.innerHeight/2;
+  const rx=Math.min(cx-60,260),ry=Math.min(cy-80,220);
+  const t0=performance.now();
+  function frame(t){
+    const p=(t-t0)/dur;
+    if(p>=1){el.style.display='none';done();return;}
+    const a=p*revs*Math.PI*2-Math.PI/2;
+    el.style.left=(cx+Math.cos(a)*rx-22)+'px';
+    el.style.top=(cy+Math.sin(a)*ry-22)+'px';
+    if(Math.random()<.06)swish();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+document.getElementById('startBtn').addEventListener('click',function(){
+  ctx().resume();this.disabled=true;
+  const checked=document.querySelectorAll('#symptoms input:checked').length;
+  msg('sthir raho...');
+  document.getElementById('smoke').style.opacity=1;
+  /* phase 1: mirchi-nimbu circles */
+  setTimeout(()=>{
+    msg('🌶️ nimbu-mirchi ghum rahi hai...');
+    circleElement(document.getElementById('mirchi'),3,5200,()=>{
+      /* phase 2: jhadu sweep */
+      msg('🧹 jhaad-phoonk...');
+      const j=document.getElementById('jhadu');j.style.display='block';
+      let sweeps=0;
+      const sweep=setInterval(()=>{
+        j.style.left=(20+Math.random()*(window.innerWidth-80))+'px';
+        j.style.top=(20+Math.random()*(window.innerHeight-120))+'px';
+        j.style.transform=`rotate(${-30+Math.random()*60}deg)`;
+        swish();
+        if(++sweeps>=8){clearInterval(sweep);j.style.display='none';
+          /* phase 3: thoo thoo thoo */
+          thoo(3,()=>{
+            bellDing();
+            msg('✨ NAZAR UTAR GAYI ✨');
+            document.getElementById('eye').classList.add('cleared');
+            document.getElementById('eye').textContent='😌';
+            document.getElementById('smoke').style.opacity=0;
+            setTimeout(()=>{
+              document.getElementById('ritualMsg').style.display='none';
+              drawReceipt(checked);
+              document.getElementById('receiptWrap').style.display='flex';
+              const b=document.getElementById('startBtn');
+              b.disabled=false;b.textContent='🌶️ dobara utaro (nazar phir lag gayi?)';
+            },2000);
+          });
+        }
+      },500);
+    });
+  },1200);
+});
+function drawReceipt(symptoms){
+  const c=document.getElementById('receipt'),x=c.getContext('2d');
+  const now=new Date();
+  const valid=new Date(now.getTime()+7*864e5);
+  x.fillStyle='#fdf6e3';x.fillRect(0,0,800,1000);
+  /* zigzag receipt edges */
+  x.fillStyle='#17120c';
+  for(let i=0;i<800;i+=40){x.beginPath();x.moveTo(i,0);x.lineTo(i+20,14);x.lineTo(i+40,0);x.fill();
+    x.beginPath();x.moveTo(i,1000);x.lineTo(i+20,986);x.lineTo(i+40,1000);x.fill();}
+  x.textAlign='center';
+  x.font='54px "Yatra One"';x.fillStyle='#d5342b';
+  x.fillText('नज़र उतारो सेवा',400,110);
+  x.font='bold 20px Karla';x.fillStyle='#6b5b3a';
+  x.fillText('NUKKAD JHAAD-PHOONK CENTER · SINCE FOREVER',400,148);
+  x.strokeStyle='#26364a';x.setLineDash([8,6]);x.beginPath();x.moveTo(60,180);x.lineTo(740,180);x.stroke();x.setLineDash([]);
+  x.font='24px Karla';x.fillStyle='#26364a';x.textAlign='left';
+  const L=[
+    ['Seva:','Digital Nazar Removal (Deluxe)'],
+    ['Lakshan report kiye:',symptoms+' / 5'],
+    ['Mirchi-nimbu rounds:','3 (regulation standard)'],
+    ['Jhadu sweeps:','8'],
+    ['Thoo count:','3 (shubh sankhya)'],
+    ['Nazar status:','UTAR GAYI ✔'],
+    ['Date:',now.toLocaleDateString('en-IN')],
+    ['Valid till:',valid.toLocaleDateString('en-IN')+' (7 din)'],
+    ['Fees:','₹0.00 (mohalla seva)']
+  ];
+  L.forEach((r,i)=>{const y=240+i*58;
+    x.font='bold 22px Karla';x.fillStyle='#8a7750';x.fillText(r[0],80,y);
+    x.font='24px Karla';x.fillStyle='#26364a';x.fillText(r[1],360,y);});
+  x.strokeStyle='#26364a';x.setLineDash([8,6]);x.beginPath();x.moveTo(60,800);x.lineTo(740,800);x.stroke();x.setLineDash([]);
+  x.textAlign='center';
+  x.font='26px "Yatra One"';x.fillStyle='#12409e';
+  x.fillText('shart: 7 din tak kisi ki taareef seedhe mooh mat suno',400,850);
+  /* stamp */
+  x.save();x.translate(620,910);x.rotate(-.15);
+  x.strokeStyle='#1b7a3d';x.lineWidth=4;x.beginPath();x.arc(0,0,54,0,7);x.stroke();
+  x.fillStyle='#1b7a3d';x.font='bold 16px Karla';
+  x.fillText('NAZAR',0,-6);x.fillText('CLEARED',0,14);x.restore();
+  x.font='16px Karla';x.fillStyle='#8a7750';x.textAlign='center';
+  x.fillText('serial no. NZ-'+Math.floor(10000+Math.random()*89999)+' · nukkad.fun',300,930);
+}
+if(document.fonts&&document.fonts.load)document.fonts.load('54px "Yatra One"');
+document.getElementById('dlBtn').addEventListener('click',()=>{
+  const a=document.createElement('a');a.download='nazar-cleared-receipt.png';
+  a.href=document.getElementById('receipt').toDataURL('image/png');a.click();
+});
+</script>
+</body>
+</html>

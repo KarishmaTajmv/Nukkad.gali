@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Line — aapka number aayega</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c;--file:#e8dcc0}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:#28251d;color:var(--cream);min-height:100vh;
+    background-image:repeating-linear-gradient(0deg,#28251d 0 60px,#252219 60px 62px);
+    display:flex;flex-direction:column;align-items:center;padding:24px 14px 60px}
+  a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:8px}
+  .brand{background:var(--file);border:4px solid var(--red);border-radius:6px;padding:8px 26px;
+    transform:rotate(-1deg);box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(26px,5vw,40px);color:var(--enamel);text-shadow:2px 2px 0 var(--haldi)}
+  .sub{color:#b7aa88;font-size:12px;margin-bottom:18px;text-align:center}
+
+  #board{background:#1c1a14;border:3px solid #5a4a28;border-radius:12px;padding:16px 22px;text-align:center;margin-bottom:16px;width:min(460px,94vw)}
+  #board .lbl{font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:#8a7750}
+  #pos{font-family:'Yatra One',cursive;font-size:clamp(56px,12vw,96px);color:var(--red);line-height:1;
+    text-shadow:0 0 20px rgba(213,52,43,.4)}
+  #board small{color:#b7aa88;font-size:12px}
+
+  #queueViz{width:min(460px,94vw);background:#1c1a14;border:3px solid #5a4a28;border-radius:12px;padding:14px;margin-bottom:14px}
+  #people{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-start}
+  .p{width:16px;height:22px;border-radius:5px 5px 2px 2px;background:#6b5b3a;position:relative}
+  .p::before{content:'';position:absolute;top:-8px;left:3px;width:10px;height:10px;border-radius:50%;background:inherit}
+  .p.you{background:var(--haldi)}
+  #counterWin{margin-bottom:8px;font-size:13px;color:#b7aa88;display:flex;justify-content:space-between}
+  #counterWin b{color:var(--haldi)}
+  #status{width:min(460px,94vw);min-height:52px;font-size:14px;color:#d8ccab;font-style:italic;text-align:center;margin-bottom:14px}
+  #status.event{color:var(--red);font-weight:700;font-style:normal}
+
+  button{font-family:'Yatra One',cursive;font-size:18px;background:var(--red);color:var(--cream);
+    border:3px solid var(--haldi);border-radius:10px;padding:12px 28px;cursor:pointer;box-shadow:4px 5px 0 rgba(0,0,0,.5)}
+  button:hover{transform:translateY(-2px)}
+  button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+  #certWrap{display:none;flex-direction:column;align-items:center;gap:12px;width:min(560px,94vw)}
+  canvas{width:100%;border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,.5)}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>लाइन</h1></div>
+<p class="sub">LINE · sarkari daftar · window no. 4 · "aapka number aayega" (shayad)</p>
+
+<div id="board">
+  <div class="lbl">aapke aage log</div>
+  <div id="pos">—</div>
+  <small id="eta">anumaanit samay: bhagwan bharose</small>
+</div>
+
+<div id="queueViz">
+  <div id="counterWin"><span>🪟 WINDOW NO. 4 — <b id="babu">Babu ji seat par hain</b></span><span id="clock">11:02 AM</span></div>
+  <div id="people"></div>
+</div>
+
+<p id="status">line mein lagne ke liye niche button dabayein. token milega. sabr rakhein.</p>
+<button id="joinBtn">🧍 line mein lago</button>
+
+<div id="certWrap">
+  <canvas id="cert" width="1100" height="780"></canvas>
+  <button id="dlCert">⬇️ certificate download karo</button>
+</div>
+
+<script>
+let pos=null,running=false,timer=null,clockMin=662,lunch=false; /* 11:02 AM */
+const EVENTS=[
+  {p:.12,msg:"❌ 'yeh form purana hai. naya form counter 7 se lo.' — 3 log aage ghus gaye.",delta:+3},
+  {p:.1, msg:"📎 'photocopy kahan hai? bina photocopy kuch nahi hoga.' — 2 sthaan peeche.",delta:+2},
+  {p:.12,msg:"🙏 ek uncle ne aapko aage jaane diya. bhala ho unka.",delta:-2},
+  {p:.08,msg:"☎️ babu ji ka personal call... line ruk gayi. (koi kuch nahi bol sakta)",delta:0,stall:2},
+  {p:.06,msg:"⚡ 'server down hai.' — sab log ek dusre ko dekh rahe hain.",delta:0,stall:3}
+];
+const IDLE=[
+  "aage wale uncle ke haath mein 14 documents hain. himmat rakhiye.",
+  "kisi ne poocha 'kitna time lagega?' — javab nahi mila.",
+  "ek aunty seedhe window pe gayi. unko wapas bheja gaya. nyay zinda hai.",
+  "pankha chal raha hai par hawa nahi aa rahi. classic.",
+  "peeche wale bhaisahab bahut kareeb khade hain. bahut."
+];
+function fmtClock(){const h=Math.floor(clockMin/60),m=clockMin%60;
+  const hh=((h+11)%12)+1;return `${hh}:${String(m).padStart(2,'0')} ${h<1||h>=13?'PM':'AM'}`;}
+function renderQueue(){
+  const box=document.getElementById('people');box.innerHTML='';
+  const show=Math.min(pos,60);
+  for(let i=0;i<show;i++){const d=document.createElement('div');d.className='p';box.appendChild(d);}
+  const you=document.createElement('div');you.className='p you';you.title='aap';box.appendChild(you);
+  document.getElementById('pos').textContent=pos;
+  document.getElementById('eta').textContent=pos>25?'anumaanit samay: bhagwan bharose':
+    pos>10?'anumaanit samay: "bas thodi der"':'anumaanit samay: umeed jag rahi hai...';
+}
+function say(msg,ev){const s=document.getElementById('status');s.textContent=msg;s.classList.toggle('event',!!ev);}
+function tick(){
+  if(!running)return;
+  clockMin+=1+Math.floor(Math.random()*2);
+  document.getElementById('clock').textContent=fmtClock();
+  /* LUNCH: 1:00 PM sharp, window shut ~40 sim-min */
+  if(!lunch&&clockMin>=780){lunch=true;
+    document.getElementById('babu').textContent='LUNCH — 2 baje aana';
+    say('🍱 1 BAJ GAYA. window band. babu ji tiffin khol chuke hain. line wahin ki wahin.',true);
+    setTimeout(()=>{lunch=false;clockMin=840;
+      document.getElementById('babu').textContent='Babu ji seat par hain';
+      say('window khul gayi. babu ji ke chehre pe santushti hai. line phir chalu.');
+      timer=setTimeout(tick,3000);},18000);
+    return;}
+  /* random event */
+  const r=Math.random();let acc=0,fired=null;
+  for(const e of EVENTS){acc+=e.p;if(r<acc){fired=e;break;}}
+  if(fired){pos=Math.max(0,pos+fired.delta);say(fired.msg,true);
+    renderQueue();
+    timer=setTimeout(tick,(fired.stall?fired.stall*6000:0)+7000+Math.random()*8000);
+  }else{
+    pos=Math.max(0,pos-1);
+    if(Math.random()<.5)say(IDLE[Math.floor(Math.random()*IDLE.length)]);
+    renderQueue();
+    timer=setTimeout(tick,6000+Math.random()*9000);
+  }
+  if(pos<=0){reachCounter();}
+}
+function reachCounter(){
+  running=false;clearTimeout(timer);
+  say('🎉 AAPKA NUMBER AA GAYA. babu ji ne muhar uthai... THAK. KAAM HO GAYA.',false);
+  drawCert();
+  document.getElementById('certWrap').style.display='flex';
+  document.getElementById('joinBtn').style.display='none';
+}
+function drawCert(){
+  const c=document.getElementById('cert'),x=c.getContext('2d');
+  x.fillStyle='#f2ecd8';x.fillRect(0,0,1100,780);
+  x.strokeStyle='#12409e';x.lineWidth=10;x.strokeRect(30,30,1040,720);
+  x.strokeStyle='#d5342b';x.lineWidth=3;x.strokeRect(48,48,1004,684);
+  x.fillStyle='#12409e';x.textAlign='center';
+  x.font='30px Karla';x.fillText('कार्यालय — विभाग of INTEZAAR',550,120);
+  x.font='bold 18px Karla';x.fillStyle='#6b5b3a';
+  x.fillText('WINDOW NO. 4 · NUKKAD MUNICIPAL DAFTAR',550,152);
+  x.font='84px "Yatra One"';x.fillStyle='#d5342b';
+  x.fillText('AAPKA KAAM HO GAYA',550,300);
+  x.font='24px Karla';x.fillStyle='#333';
+  x.fillText('Yeh pramanit kiya jaata hai ki dhaarak ne poori line',550,380);
+  x.fillText('bina bheed tode, bina jugaad lagaye, khadi hoke paar ki.',550,414);
+  x.fillText('Lunch break bhi jhela. Server down bhi dekha.',550,448);
+  x.font='bold 22px Karla';x.fillStyle='#12409e';
+  x.fillText('Sabr Certificate · Serial No. '+Math.floor(100000+Math.random()*899999),550,520);
+  /* stamp */
+  x.save();x.translate(840,600);x.rotate(-.2);
+  x.strokeStyle='#7a2f8c';x.lineWidth=5;x.beginPath();x.arc(0,0,72,0,7);x.stroke();
+  x.beginPath();x.arc(0,0,54,0,7);x.stroke();
+  x.fillStyle='#7a2f8c';x.font='bold 17px Karla';
+  x.fillText('SARKARI',0,-8);x.fillText('MUHAR',0,14);x.restore();
+  /* signature scribble */
+  x.strokeStyle='#12409e';x.lineWidth=3;x.beginPath();
+  x.moveTo(180,620);x.bezierCurveTo(220,580,260,660,300,610);x.bezierCurveTo(330,580,350,640,400,600);x.stroke();
+  x.font='16px Karla';x.fillStyle='#333';x.fillText('(hastakshar — padhe nahi ja sakte)',300,650);
+}
+if(document.fonts&&document.fonts.load)document.fonts.load('84px "Yatra One"');
+document.getElementById('dlCert').addEventListener('click',()=>{
+  const a=document.createElement('a');a.download='sabr-certificate.png';
+  a.href=document.getElementById('cert').toDataURL('image/png');a.click();
+});
+document.getElementById('joinBtn').addEventListener('click',function(){
+  pos=18+Math.floor(Math.random()*13);
+  running=true;renderQueue();
+  say('aap line mein hain. peeche bhi log lag chuke hain. ab niklna asambhav hai (socially).');
+  this.style.display='none';
+  timer=setTimeout(tick,4000);
+});
+</script>
+</body>
+</html>

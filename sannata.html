@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sannata — kuch mat bolo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:#1b1a17;color:#b8ad98;min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+  a.back{position:fixed;top:16px;left:16px;color:#6b5b3a;font-size:13px;text-decoration:none}
+  .brand{background:#2a2822;border:3px solid #4a4436;border-radius:6px;padding:8px 26px;margin-bottom:6px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(24px,5vw,36px);color:#8a7f68}
+  .sub{color:#5a5344;font-size:12px;margin-bottom:34px}
+
+  #clock{font-size:56px;margin-bottom:4px;user-select:none}
+  #timer{font-family:'Yatra One',cursive;font-size:clamp(48px,11vw,92px);color:#8a7f68;line-height:1}
+  #timerLbl{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#5a5344;margin-bottom:30px}
+
+  #thought{min-height:56px;max-width:420px;font-style:italic;font-size:15px;color:#7a7160;line-height:1.6}
+  #events{min-height:26px;font-size:14px;color:#8a7f68;margin-top:8px}
+
+  #startBtn{font-family:'Yatra One',cursive;font-size:18px;background:#2a2822;color:#b8ad98;
+    border:3px solid #4a4436;border-radius:10px;padding:12px 28px;cursor:pointer;margin-top:26px}
+  #startBtn:focus-visible{outline:3px solid #8a7f68;outline-offset:3px}
+
+  #broken{display:none;position:fixed;inset:0;background:var(--red);z-index:50;
+    flex-direction:column;align-items:center;justify-content:center;color:var(--cream);padding:20px;text-align:center}
+  #broken h2{font-family:'Yatra One',cursive;font-size:clamp(34px,8vw,64px);text-shadow:3px 3px 0 var(--enamel)}
+  #broken p{margin-top:12px;font-size:16px;max-width:420px;line-height:1.6}
+  #broken button{margin-top:26px;font-family:'Yatra One',cursive;font-size:18px;background:var(--haldi);
+    color:var(--dark);border:3px solid var(--enamel);border-radius:10px;padding:12px 28px;cursor:pointer}
+  #best{margin-top:14px;font-size:12px;color:#5a5344;letter-spacing:.08em}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>सन्नाटा</h1></div>
+<p class="sub">SANNATA · ek kamra · ek ghadi · aur tum · KUCH MAT KARNA</p>
+
+<div id="clock">🕰️</div>
+<div id="timer">0:00</div>
+<div id="timerLbl">sannata qaayam hai</div>
+
+<p id="thought"></p>
+<p id="events" aria-live="polite"></p>
+
+<button id="startBtn">🤐 sannata shuru karo</button>
+<p id="best">session best: —</p>
+
+<div id="broken">
+  <h2>SANNATA TOOT GAYA</h2>
+  <p id="brokenReason"></p>
+  <button id="againBtn">🤐 phir se chup ho jao</button>
+</div>
+
+<script>
+/* THE GAME: do nothing. Moving the mouse too much, clicking, pressing keys,
+   scrolling, or leaving the tab = you broke the silence. Small mouse drift is forgiven. */
+let running=false,secs=0,tickT=null,moveBudget=0,best=0;
+const THOUGHTS=[
+  "kuch bolna chahiye kya...",
+  "nahi. bilkul nahi. yahi toh test hai.",
+  "ghadi kitni tez lag rahi hai jab aur kuch nahi hai...",
+  "kya doosre bande ko bhi awkward lag raha hoga? (doosra banda ghadi hai)",
+  "khaansi aa rahi hai kya? NAHI. control.",
+  "yeh sannata ab sunayi dene laga hai. yeh acchi baat hai. shayad.",
+  "sochne ki awaaz bhi kam karo.",
+  "duniya mein kahin koi mixer chala raha hoga. yahan nahi."
+];
+const EVENTS=[
+  {t:"(kahin door se) ...khoon... khoon...",  s:'throat'},
+  {t:"(kursi chari) creeeek...",              s:'creak'},
+  {t:"(pankha halka sa hila)",                s:null},
+  {t:"(deewar ki ghadi ne saans li)",         s:null},
+  {t:"(padosi ke ghar pressure cooker) ...door ki seeti",s:'seeti'},
+  {t:"(kisi ne gala saaf kiya) ehm.",         s:'throat'}
+];
+const REASONS={
+  move:"mouse itna hil gaya ki kamre ne notice kar liya. sabne dekha. SABNE.",
+  click:"CLICK?! is pavitra sannate mein CLICK?!",
+  key:"keyboard dabaya. awaaz aayi. sapna toota.",
+  scroll:"scroll kiya. scroll ki bhi awaaz hoti hai. andar ki awaaz.",
+  tab:"tab chhod ke chale gaye. peeth peeche sannata roya."
+};
+let AC=null,master=null;
+function ctx(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+  master=AC.createGain();master.gain.value=.7;master.connect(AC.destination);}return AC;}
+function tickSound(){
+  const a=ctx(),t=a.currentTime,o=a.createOscillator(),g=a.createGain();
+  o.type='square';o.frequency.value=secs%2?1800:1500;
+  g.gain.setValueAtTime(.025,t);g.gain.exponentialRampToValueAtTime(.001,t+.04);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+.05);
+}
+function eventSound(kind){
+  const a=ctx(),t=a.currentTime;
+  if(kind==='throat'){const o=a.createOscillator(),g=a.createGain();
+    o.type='sawtooth';o.frequency.setValueAtTime(140,t);o.frequency.linearRampToValueAtTime(90,t+.25);
+    const f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=500;
+    g.gain.setValueAtTime(.08,t);g.gain.exponentialRampToValueAtTime(.001,t+.3);
+    o.connect(f);f.connect(g);g.connect(master);o.start(t);o.stop(t+.32);}
+  if(kind==='creak'){const o=a.createOscillator(),g=a.createGain();
+    o.type='sawtooth';o.frequency.setValueAtTime(300,t);o.frequency.linearRampToValueAtTime(180,t+.5);
+    const f=a.createBiquadFilter();f.type='bandpass';f.frequency.value=400;f.Q.value=4;
+    g.gain.setValueAtTime(.04,t);g.gain.linearRampToValueAtTime(.001,t+.55);
+    o.connect(f);f.connect(g);g.connect(master);o.start(t);o.stop(t+.6);}
+  if(kind==='seeti'){const o=a.createOscillator(),g=a.createGain();
+    o.type='sine';o.frequency.value=2300;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.02,t+.3);
+    g.gain.linearRampToValueAtTime(0,t+1.4);
+    o.connect(g);g.connect(master);o.start(t);o.stop(t+1.5);}
+}
+function fmt(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function tick(){
+  if(!running)return;
+  secs++;tickSound();
+  moveBudget=Math.max(0,moveBudget-8); /* forgiveness regenerates */
+  document.getElementById('timer').textContent=fmt(secs);
+  document.title=fmt(secs)+' — Sannata';
+  if(secs%13===0)document.getElementById('thought').textContent=THOUGHTS[Math.floor(Math.random()*THOUGHTS.length)];
+  if(secs%17===0&&Math.random()<.7){
+    const e=EVENTS[Math.floor(Math.random()*EVENTS.length)];
+    document.getElementById('events').textContent=e.t;
+    if(e.s)eventSound(e.s);
+    setTimeout(()=>document.getElementById('events').textContent='',4000);
+  }
+  tickT=setTimeout(tick,1000);
+}
+function breakSilence(reason){
+  if(!running)return;
+  running=false;clearTimeout(tickT);
+  if(secs>best){best=secs;
+    document.getElementById('best').textContent='session best: '+fmt(best)+' ka sannata';}
+  document.getElementById('brokenReason').textContent=
+    REASONS[reason]+` (sannata chala: ${fmt(secs)})`;
+  document.getElementById('broken').style.display='flex';
+  document.title='SANNATA TOOT GAYA';
+}
+/* violation listeners */
+document.addEventListener('mousemove',e=>{
+  if(!running)return;
+  moveBudget+=Math.hypot(e.movementX||0,e.movementY||0);
+  if(moveBudget>420)breakSilence('move');
+});
+document.addEventListener('mousedown',e=>{
+  if(!running)return;
+  if(e.target.id!=='startBtn'&&e.target.id!=='againBtn')breakSilence('click');
+});
+document.addEventListener('keydown',()=>breakSilence('key'));
+document.addEventListener('wheel',()=>breakSilence('scroll'));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)breakSilence('tab');});
+document.addEventListener('touchmove',()=>breakSilence('move'));
+
+function start(){
+  ctx().resume();
+  secs=0;moveBudget=0;running=true;
+  document.getElementById('broken').style.display='none';
+  document.getElementById('startBtn').style.display='none';
+  document.getElementById('thought').textContent='bas. ab kuch mat karo. mouse ko bhi aaram do.';
+  setTimeout(tick,1000);
+}
+document.getElementById('startBtn').addEventListener('click',e=>{e.stopPropagation();start();});
+document.getElementById('againBtn').addEventListener('click',e=>{e.stopPropagation();
+  document.getElementById('startBtn').style.display='none';start();});
+</script>
+</body>
+</html>

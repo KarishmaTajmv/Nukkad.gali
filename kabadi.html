@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kabadi — "iska toh kuch nahi milega"</title>
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+    background-image:radial-gradient(circle at 50% -10%,#2a2115 0%,var(--dark) 60%);
+    display:flex;flex-direction:column;align-items:center;padding:26px 14px 60px}
+  a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:8px}
+  .brand{background:#6b4423;border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;transform:rotate(-1deg);
+    box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(26px,5vw,40px);text-shadow:2px 2px 0 var(--red)}
+  .sub{color:#c9b790;font-size:12px;margin-bottom:18px;text-align:center}
+  #game{width:min(560px,96vw);display:flex;flex-direction:column;gap:12px}
+  #junk{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+  .item{background:#241c10;border:2px solid #3a2f1c;border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer;transition:transform .12s,border-color .12s}
+  .item:hover{transform:translateY(-3px);border-color:var(--haldi)}
+  .item:focus-visible{outline:3px solid var(--haldi);outline-offset:2px}
+  .item.sold{opacity:.3;pointer-events:none}
+  .item .e{font-size:34px}.item .n{font-size:12px;font-weight:700;margin-top:4px}
+  #chat{background:#0f0c07;border:3px solid #3a2f1c;border-radius:12px;padding:14px;height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+  .msg{max-width:84%;padding:9px 13px;border-radius:12px;font-size:14px;line-height:1.4;animation:pop .18s}
+  @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+  .msg.k{background:#2c2113;border:1px solid #5a4a28;align-self:flex-start;border-bottom-left-radius:2px}
+  .msg.k::before{content:'kabadi wala ♻️';display:block;font-size:10px;color:var(--haldi);margin-bottom:3px}
+  .msg.you{background:var(--enamel);align-self:flex-end;border-bottom-right-radius:2px}
+  #inputRow{display:flex;gap:8px}
+  #ask{flex:1;font-size:17px;font-weight:700;padding:11px 14px;border-radius:10px;border:3px solid var(--haldi);
+    background:#241c10;color:var(--cream);outline:none;font-family:'Karla'}
+  button{font-family:'Karla';font-weight:700;font-size:14px;border:none;border-radius:10px;padding:11px 16px;cursor:pointer}
+  #askBtn{background:var(--haldi);color:var(--dark)}
+  #okBtn{background:#2e7d32;color:#fff}
+  button:focus-visible{outline:3px solid var(--cream);outline-offset:2px}
+  button:disabled{opacity:.35}
+  #total{text-align:center;font-size:13px;color:#8a7750}#total b{color:var(--haldi);font-family:'Yatra One';font-size:20px}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>कबाड़ी</h1></div>
+<p class="sub">KABADI · "kabaaadiiii walaaaa" · woh sab kuch lega, bas daam nahi dega</p>
+
+<div id="game">
+  <div id="junk"></div>
+  <div id="chat" aria-live="polite"></div>
+  <div id="inputRow">
+    <input id="ask" type="number" min="1" placeholder="apna daam maango (₹)" aria-label="Your asking price" disabled>
+    <button id="askBtn" disabled>MAANGO</button>
+    <button id="okBtn" disabled>🤝 BECH DO</button>
+  </div>
+  <p id="total">aaj ki kamai: <b id="earned">₹0</b></p>
+</div>
+
+<script>
+const ITEMS=[
+  {e:'📺',n:'Purana TV (chalta hai!)',worth:350,open:15,line:'TV? Bhaiya yeh toh museum ka maal hai. Picture tube ka zamana gaya.'},
+  {e:'📰',n:'Akhbaar ka dher',worth:90,open:25,line:'Raddi ₹8 kilo. Yeh mushkil se 3 kilo hai. Geela bhi lag raha hai.'},
+  {e:'🚲',n:'Purani cycle',worth:600,open:60,line:'Cycle mein jung lagi hai. Ghanti bhi nahi baj rahi. Ghanti ka alag paisa katunga.'},
+  {e:'🧊',n:'Kharab cooler',worth:400,open:40,line:'Cooler ki body toh theek hai... par motor? Motor toh scrap hai.'},
+  {e:'📼',n:'VCR + 30 cassettes',worth:300,open:10,line:'VCR?! Bhaiya isko chalane wala aadmi bhi ab nahi milta.'},
+  {e:'🍳',n:'Purane bartan (peetal)',worth:500,open:80,line:'Peetal hai? Hmm... (khatkhata ke) mila hua peetal lag raha hai. Shuddh nahi.'},
+  {e:'🔋',n:'Kharab inverter',worth:450,open:50,line:'Inverter ki battery dead hai. Main zinda cheez ka paisa deta hoon, murda ka nahi.'},
+  {e:'🪑',n:'Toota jhoola',worth:200,open:20,line:'Jhoole mein ek hi kadi hai. Aadha jhoola = aadha daam. Nahi, chauthai.'}
+];
+let cur=null,offer=0,rounds=0,earned=0;
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const RAISE_S=['Acha acha... thoda badha deta hoon. Par bas.','Aap toh gala hi pakad loge. Lo —','Hmm... boni ka time hai, chalo —'];
+const REFUSE=['Itna?! Bhaiya main kabadi hoon, Ambani nahi.','Is daam pe toh main aapse kharid ke aapko hi bech dun toh bhi nuksaan hai.','Naya isse saste mein aa jayega. NAYA.'];
+const FINAL=['Bas. Isse upar nahi. Tarazu ki kasam.','Yeh FINAL hai. Aage aap jaano.'];
+function say(w,t){const c=document.getElementById('chat'),d=document.createElement('div');
+  d.className='msg '+w;d.textContent=t;c.appendChild(d);c.scrollTop=c.scrollHeight;}
+function setUI(on){['ask','askBtn','okBtn'].forEach(id=>document.getElementById(id).disabled=!on);}
+document.getElementById('junk').innerHTML=ITEMS.map((it,i)=>
+  `<div class="item" tabindex="0" role="button" data-i="${i}"><div class="e">${it.e}</div><div class="n">${it.n}</div></div>`).join('');
+document.querySelectorAll('.item').forEach(el=>{
+  const go=()=>{ if(cur)return;
+    cur=ITEMS[+el.dataset.i];cur.el=el;offer=cur.open;rounds=0;
+    say('you','(le aaye) '+cur.e+' '+cur.n);
+    setTimeout(()=>{say('k',cur.line);say('k',`₹${offer}. Lena hai toh lo.`);setUI(true);},600);
+  };
+  el.addEventListener('click',go);
+  el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}});
+});
+document.getElementById('askBtn').addEventListener('click',()=>{
+  const v=parseInt(document.getElementById('ask').value,10);
+  if(!v||!cur)return;
+  document.getElementById('ask').value='';
+  say('you','₹'+v+' lagao');
+  rounds++;
+  setTimeout(()=>{
+    const ceiling=cur.worth*(0.55+Math.random()*0.15); /* his secret max */
+    if(v<=offer){say('k','Arre waah! Yeh hui na baat. PAKKA?');offer=v;}
+    else if(v<=ceiling){offer=Math.min(v,Math.round((offer+v)/2)+rounds*3);
+      say('k',pick(RAISE_S)+` ₹${offer}.`);}
+    else if(rounds>=3){say('k',pick(FINAL)+` ₹${offer}.`);}
+    else{offer=Math.min(Math.round(ceiling*.85),offer+Math.round((ceiling-offer)*.3));
+      say('k',pick(REFUSE)+` ₹${offer} — aur woh bhi dil pe patthar rakh ke.`);}
+  },650);
+});
+document.getElementById('okBtn').addEventListener('click',()=>{
+  if(!cur)return;
+  earned+=offer;
+  document.getElementById('earned').textContent='₹'+earned;
+  say('you','theek hai, ₹'+offer+' mein le jao.');
+  const pct=Math.round(offer/cur.worth*100);
+  setTimeout(()=>{say('k',pct>=60?'(dheere se) aaj toh grahak jeet gaya... 😑 tarazu utha!':
+    pct>=40?'Chalo theek hai. (andar hi andar khush)':
+    '(seeti bajate hue tez tez tarazu pe rakhta hai) Aur kuch hai ghar mein?? 😁');},600);
+  cur.el.classList.add('sold');cur=null;setUI(false);
+  if(document.querySelectorAll('.item:not(.sold)').length===0)
+    setTimeout(()=>say('k',`Ghar khali ho gaya, jeb bhari — ₹${earned}. Agle mahine phir aaunga. Kuch na kuch toh nikaloge. Sab nikalte hain.`),1400);
+});
+document.getElementById('ask').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('askBtn').click();});
+say('k','Kabaaadiiii walaaaa... raddi, bartan, purana TV-cooler... kya bechna hai? Item pe click karo.');
+</script>
+</body>
+</html>

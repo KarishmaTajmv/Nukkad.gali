@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lift — har floor pe rukegi</title>
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Karla',sans-serif;background:#1a1d26;color:var(--cream);min-height:100vh;
+display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+a.back{position:fixed;top:16px;left:16px;color:var(--haldi);font-size:13px;text-decoration:none}
+.brand{background:var(--enamel);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;transform:rotate(-1deg);
+box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+.brand h1{font-family:'Yatra One',cursive;font-size:clamp(24px,5vw,38px);text-shadow:2px 2px 0 var(--red)}
+.sub{color:#8a93a8;font-size:12px;margin-bottom:22px}
+#panelBox{background:#2a2d3a;border:4px solid #444a5c;border-radius:14px;padding:22px 28px;box-shadow:0 16px 44px rgba(0,0,0,.5)}
+#display{background:#0a0d05;border:3px solid #333;border-radius:8px;padding:10px 30px;margin-bottom:16px}
+#floorNum{font-family:'Courier New',monospace;font-weight:700;font-size:56px;color:#ff5e2a;text-shadow:0 0 14px rgba(255,94,42,.6)}
+#dir{font-size:20px;color:#ff5e2a}
+#callBtn{width:74px;height:74px;border-radius:50%;border:4px solid #666;background:#3a3d4a;color:var(--cream);
+font-size:26px;cursor:pointer;transition:all .15s}
+#callBtn.lit{background:var(--haldi);color:var(--dark);border-color:#fff;box-shadow:0 0 24px rgba(242,179,28,.6)}
+#callBtn:focus-visible{outline:3px solid var(--haldi);outline-offset:3px}
+#status{margin-top:18px;min-height:48px;font-size:15px;color:#c9b790;font-style:italic;max-width:400px}
+#timer{margin-top:8px;font-size:12px;color:#6a7288}#timer b{color:var(--haldi);font-family:'Yatra One';font-size:18px}
+#doors{position:fixed;inset:0;display:none;z-index:50}
+#doors .l,#doors .r{position:absolute;top:0;bottom:0;width:50%;background:linear-gradient(90deg,#4a4d5c,#3a3d4a);transition:transform 1.6s ease-in-out}
+#doors .l{left:0}#doors .r{right:0}
+#doors.open .l{transform:translateX(-100%)}#doors.open .r{transform:translateX(100%)}
+#inside{position:fixed;inset:0;display:none;z-index:49;background:#3a3626;flex-direction:column;align-items:center;justify-content:center}
+#inside h2{font-family:'Yatra One';font-size:clamp(28px,7vw,52px);color:var(--haldi);text-shadow:3px 3px 0 var(--red)}
+#inside p{margin-top:10px;color:#c9b790;max-width:400px;font-size:15px;line-height:1.6}
+#inside button{margin-top:22px;font-family:'Yatra One';font-size:17px;background:var(--red);color:var(--cream);
+border:3px solid var(--haldi);border-radius:10px;padding:11px 24px;cursor:pointer}
+</style></head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>लिफ्ट</h1></div>
+<p class="sub">LIFT KA INTEZAAR · aap ground floor pe ho · lift ka apna schedule hai</p>
+
+<div id="panelBox">
+  <div id="display"><span id="floorNum">7</span> <span id="dir">▲</span></div>
+  <button id="callBtn" aria-label="Call lift">▼</button>
+</div>
+<p id="status">button dabao. phir jo hoga... woh sabke saath hota hai.</p>
+<p id="timer">intezaar: <b id="secs">0s</b> · lifetime records mat poochho</p>
+
+<div id="doors"><div class="l"></div><div class="r"></div></div>
+<div id="inside">
+  <h2>LIFT AA GAYI 🎉</h2>
+  <p id="insideMsg"></p>
+  <button onclick="location.reload()">🔁 phir se bulao (kyun??)</button>
+</div>
+
+<script>
+let floor=7,called=false,secs=0,dir=-1,timer=null,secT=null;
+const EVENTS=[
+ {f:5,msg:'5 pe ruki. koi charpai chadha raha hai. CHARPAI.'},
+ {f:4,msg:'4 pe ruki. aunty ne door pakad ke baat shuru kar di hai.'},
+ {f:6,msg:'6 pe ruki... aur ab UPAR ja rahi hai?! kisne bulaya upar se?!'},
+ {f:3,msg:'3 pe ruki. bachcha saare button daba ke bhaag gaya.'},
+ {f:2,msg:'2 pe ruki. yahan koi tha hi nahi. lift ne khud liya break.'}
+];
+let AC=null,master=null;
+function ctx(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+master=AC.createGain();master.gain.value=.75;master.connect(AC.destination);}return AC;}
+function dingSound(){const a=ctx(),t=a.currentTime;
+[880,1108].forEach((f,i)=>{const o=a.createOscillator(),g=a.createGain();
+o.type='sine';o.frequency.value=f;
+g.gain.setValueAtTime(.15,t+i*.18);g.gain.exponentialRampToValueAtTime(.001,t+i*.18+.7);
+o.connect(g);g.connect(master);o.start(t+i*.18);o.stop(t+i*.18+.75);});}
+function motorHum(on){const a=ctx();
+if(on&&!a.__hum){const o=a.createOscillator(),g=a.createGain();
+o.type='sawtooth';o.frequency.value=60;g.gain.value=.03;
+const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=200;
+o.connect(lp);lp.connect(g);g.connect(master);o.start();a.__hum={o,g};}
+if(!on&&a.__hum){try{a.__hum.o.stop()}catch(e){}a.__hum=null;}}
+function say(t){document.getElementById('status').textContent=t;}
+function render(){
+  document.getElementById('floorNum').textContent=floor;
+  document.getElementById('dir').textContent=dir<0?'▼':'▲';
+}
+function step(){
+  if(!called)return;
+  motorHum(true);
+  floor+=dir;
+  if(floor>=9){dir=-1;} if(floor<=0){floor=0;}
+  render();
+  if(floor===0){arrive();return;}
+  /* the suffering engine */
+  const ev=EVENTS.find(e=>e.f===floor);
+  let delay=1400;
+  if(ev&&Math.random()<.75){
+    motorHum(false);
+    say(ev.msg);
+    if(floor===6&&Math.random()<.6){dir=1;say(ev.msg);delay=2600;}
+    else delay=3200+Math.random()*3500;
+  }else if(Math.random()<.12){
+    motorHum(false);say(floor+' pe bina reason ruki. lift bhi thak jaati hai shayad.');delay=2800;
+  }
+  timer=setTimeout(step,delay);
+}
+function arrive(){
+  called=false;clearInterval(secT);motorHum(false);dingSound();
+  say('DING. darwaza khul raha hai... (yeh bhi apni raftaar se khulega)');
+  setTimeout(()=>{
+    const d=document.getElementById('doors');
+    d.style.display='block';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('open')));
+    document.getElementById('inside').style.display='flex';
+    document.getElementById('insideMsg').textContent=
+      `${secs} second ka intezaar. andar mirror hai, halki si daal ki khushboo hai, aur ek uncle already khade hain jo aapko dekh ke bhi 'kaunsa floor?' nahi poochhenge.`;
+  },1200);
+}
+document.getElementById('callBtn').addEventListener('click',function(){
+  if(called)return;
+  ctx().resume();
+  called=true;this.classList.add('lit');
+  floor=6+Math.floor(Math.random()*3);dir=-1;render();
+  say('button jal gaya. ab aap system ka hissa ho.');
+  secs=0;secT=setInterval(()=>{secs++;document.getElementById('secs').textContent=secs+'s';
+    if(secs===20)say('(peeche se koi aaya, button phir dabaya — jaise aapne galat dabaya tha)');
+    if(secs===40)say('seedhi ka option hamesha tha. par ab toh sunk cost hai.');},1000);
+  timer=setTimeout(step,1200);
+});
+render();
+</script>
+</body></html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buri Nazar — apna truck-art naam banao</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c;--teal:#0e7c74}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+    background-image:radial-gradient(circle at 50% -10%, #2a2115 0%, var(--dark) 60%);
+    display:flex;flex-direction:column;align-items:center;padding:26px 14px 60px}
+  a.back{align-self:flex-start;color:var(--haldi);font-size:13px;text-decoration:none;margin-bottom:8px}
+  .brand{background:var(--haldi);border:4px solid var(--red);border-radius:6px;padding:8px 26px;
+    transform:rotate(-1deg);box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:6px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(28px,5vw,42px);color:var(--dark);text-shadow:2px 2px 0 rgba(255,255,255,.4)}
+  .sub{color:#c9b790;font-size:13px;margin-bottom:20px;text-align:center}
+
+  #panel{width:min(640px,96vw);display:flex;flex-direction:column;gap:14px}
+  canvas{width:100%;border-radius:12px;box-shadow:0 16px 44px rgba(0,0,0,.55);background:#fff}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  input[type=text]{flex:1;min-width:200px;font-family:'Karla';font-size:17px;font-weight:700;padding:12px 14px;
+    border-radius:10px;border:3px solid var(--haldi);background:#241c10;color:var(--cream);outline:none}
+  input[type=text]:focus{border-color:var(--cream)}
+  select{font-family:'Karla';font-size:14px;font-weight:700;padding:12px;border-radius:10px;border:3px solid #3a2f1c;background:#241c10;color:var(--cream)}
+  button{font-family:'Karla';font-weight:700;font-size:15px;border:none;border-radius:10px;padding:13px 20px;cursor:pointer;transition:transform .1s}
+  button:hover{transform:translateY(-2px)}
+  button:focus-visible{outline:3px solid var(--cream);outline-offset:2px}
+  #dlBtn{background:var(--red);color:var(--cream);flex:1}
+  #shuffleBtn{background:var(--enamel);color:var(--cream)}
+  .hint{font-size:12px;color:#8a7750;text-align:center}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>बुरी नज़र</h1></div>
+<p class="sub">BURI NAZAR · apna naam likho, truck ke peeche wala style, PNG le jao</p>
+
+<div id="panel">
+  <canvas id="cv" width="1200" height="700"></canvas>
+  <div class="row">
+    <input type="text" id="nameIn" maxlength="16" placeholder="apna naam likho..." value="RAJU" aria-label="Your name">
+    <select id="phraseSel" aria-label="Choose a phrase">
+      <option>BURI NAZAR WALE, TERA BHI BHALA HO</option>
+      <option>DEKH MAGAR PYAAR SE</option>
+      <option>PHIR MILENGE, CHALTE CHALTE</option>
+      <option>MEHNAT KAR, KISMAT SAATH DEGI</option>
+      <option>MAA KA ASHIRWAD</option>
+      <option>JALNE WALE KA MUH KALA</option>
+    </select>
+  </div>
+  <div class="row">
+    <select id="colorSel" aria-label="Colour scheme">
+      <option value="classic">🎨 Classic (neela-peela-laal)</option>
+      <option value="mirchi">🌶️ Mirchi (laal-hara)</option>
+      <option value="raat">🌙 Raat (kaala-sona)</option>
+    </select>
+    <button id="shuffleBtn">🎲 shuffle</button>
+    <button id="dlBtn">⬇️ PNG DOWNLOAD KARO</button>
+  </div>
+  <p class="hint">tip: naam chhota rakho toh aur mota chhapega · download karke story pe daalo</p>
+</div>
+
+<script>
+const cv=document.getElementById('cv'),x=cv.getContext('2d');
+const SCHEMES={
+  classic:{bg:'#12409e',panel:'#f2b31c',name:'#d5342b',nameOut:'#ffffff',phrase:'#f6ead3',border:'#d5342b',flower:'#ff8fc7',leaf:'#2e9c5a'},
+  mirchi:{bg:'#a8231b',panel:'#f6ead3',name:'#1b7a3d',nameOut:'#f2b31c',phrase:'#ffe9b0',border:'#f2b31c',flower:'#f2b31c',leaf:'#1b7a3d'},
+  raat:{bg:'#141414',panel:'#2a2115',name:'#f2b31c',nameOut:'#d5342b',phrase:'#f2b31c',border:'#f2b31c',flower:'#e86a9e',leaf:'#3aa06a'}
+};
+function flower(cx,cy,r,c1,c2){
+  for(let i=0;i<6;i++){const a=i*Math.PI/3;
+    x.beginPath();x.ellipse(cx+Math.cos(a)*r*.7,cy+Math.sin(a)*r*.7,r*.55,r*.32,a,0,7);
+    x.fillStyle=c1;x.fill();x.strokeStyle='#fff';x.lineWidth=3;x.stroke();}
+  x.beginPath();x.arc(cx,cy,r*.4,0,7);x.fillStyle=c2;x.fill();
+  x.strokeStyle='#fff';x.lineWidth=3;x.stroke();
+}
+function leafVine(y,c){
+  x.strokeStyle=c;x.lineWidth=5;x.beginPath();
+  x.moveTo(90,y);
+  for(let px=90;px<=1110;px+=30)x.quadraticCurveTo(px+15,y+(px/30%2?14:-14),px+30,y);
+  x.stroke();
+  for(let px=110;px<1110;px+=60){
+    x.beginPath();x.ellipse(px,y+(px/60%2?16:-16),13,6,(px/60%2?.7:-.7),0,7);
+    x.fillStyle=c;x.fill();
+  }
+}
+function draw(){
+  const s=SCHEMES[document.getElementById('colorSel').value];
+  const name=(document.getElementById('nameIn').value||'RAJU').toUpperCase();
+  const phrase=document.getElementById('phraseSel').value;
+  /* body */
+  x.fillStyle=s.bg;x.fillRect(0,0,1200,700);
+  /* rivet border */
+  x.strokeStyle=s.border;x.lineWidth=14;x.strokeRect(28,28,1144,644);
+  x.strokeStyle=s.panel;x.lineWidth=4;x.strokeRect(48,48,1104,604);
+  x.fillStyle=s.panel;
+  for(let i=70;i<1150;i+=54){x.beginPath();x.arc(i,38,6,0,7);x.fill();x.beginPath();x.arc(i,662,6,0,7);x.fill();}
+  for(let i=70;i<650;i+=54){x.beginPath();x.arc(38,i,6,0,7);x.fill();x.beginPath();x.arc(1162,i,6,0,7);x.fill();}
+  /* vines */
+  leafVine(120,s.leaf); leafVine(580,s.leaf);
+  /* corner flowers */
+  flower(120,120,34,s.flower,s.panel);flower(1080,120,34,s.flower,s.panel);
+  flower(120,580,34,s.flower,s.panel);flower(1080,580,34,s.flower,s.panel);
+  /* HORN + OK-style eyes deterrent: the classic nazar symbol (eye) */
+  x.save();x.translate(600,150);
+  x.beginPath();x.ellipse(0,0,54,30,0,0,7);x.fillStyle='#fff';x.fill();x.strokeStyle=s.border;x.lineWidth=5;x.stroke();
+  x.beginPath();x.arc(0,0,17,0,7);x.fillStyle=s.bg==='#141414'?s.name:'#12409e';x.fill();
+  x.beginPath();x.arc(0,0,7,0,7);x.fillStyle='#141414';x.fill();
+  /* lashes */
+  x.strokeStyle=s.border;x.lineWidth=4;
+  for(let i=-2;i<=2;i++){x.beginPath();x.moveTo(i*20,-28);x.lineTo(i*22,-44);x.stroke();}
+  x.restore();
+  /* NAME — the hero */
+  const size=name.length<=6?190:name.length<=10?140:100;
+  x.font=`${size}px "Yatra One"`;x.textAlign='center';x.textBaseline='middle';
+  x.lineWidth=Math.max(10,size*.09);x.lineJoin='round';
+  x.strokeStyle=s.nameOut;x.strokeText(name,600,360);
+  x.fillStyle=s.name;x.fillText(name,600,360);
+  /* drop shadow line */
+  x.font=`${size}px "Yatra One"`;
+  /* phrase panel */
+  x.fillStyle=s.panel;
+  const pw=980;x.beginPath();
+  x.roundRect?x.roundRect(600-pw/2,470,pw,80,16):x.rect(600-pw/2,470,pw,80);x.fill();
+  x.strokeStyle=s.border;x.lineWidth=5;x.stroke();
+  x.font='42px "Yatra One"';x.fillStyle=s.bg==='#141414'?'#141414':s.bg;
+  x.fillText(phrase,600,512);
+  /* footer tag */
+  x.font='26px "Karla"';x.fillStyle=s.phrase;
+  x.fillText('— nukkad · buri nazar —',600,626);
+}
+function shuffle(){
+  const sel=document.getElementById('phraseSel');
+  sel.selectedIndex=Math.floor(Math.random()*sel.options.length);
+  const cs=document.getElementById('colorSel');
+  cs.selectedIndex=Math.floor(Math.random()*cs.options.length);
+  draw();
+}
+document.getElementById('dlBtn').addEventListener('click',()=>{
+  const a=document.createElement('a');
+  a.download=(document.getElementById('nameIn').value||'naam')+'-burinazar.png';
+  a.href=cv.toDataURL('image/png');a.click();
+});
+['nameIn','phraseSel','colorSel'].forEach(id=>document.getElementById(id).addEventListener('input',draw));
+document.getElementById('shuffleBtn').addEventListener('click',shuffle);
+/* wait for the display font before first paint */
+if(document.fonts&&document.fonts.load){
+  Promise.all([document.fonts.load('100px "Yatra One"'),document.fonts.load('26px "Karla"')]).then(draw).catch(draw);
+  setTimeout(draw,1200); /* safety repaint */
+}else draw();
+</script>
+</body>
+</html>

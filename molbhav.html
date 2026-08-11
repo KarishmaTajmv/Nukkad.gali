@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MolBhav — sabziwale se jeet ke dikhao</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c;--green:#2e7d32}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+    background-image:radial-gradient(circle at 50% -10%, #2a2115 0%, var(--dark) 60%);
+    display:flex;flex-direction:column;align-items:center;padding:26px 14px 60px}
+  a.back{color:var(--haldi);font-size:13px;text-decoration:none;align-self:flex-start;max-width:900px;width:100%;margin:0 auto 10px}
+  .brand{display:inline-block;background:var(--red);border:4px solid var(--haldi);border-radius:6px;
+    padding:10px 28px;transform:rotate(-1deg);box-shadow:6px 7px 0 rgba(0,0,0,.5);margin-bottom:6px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(30px,6vw,46px);text-shadow:2px 2px 0 var(--enamel);line-height:1}
+  .sub{color:#c9b790;font-size:13px;margin-bottom:20px;text-align:center}
+
+  #game{width:min(560px,96vw);display:flex;flex-direction:column;gap:14px}
+
+  /* uncle card */
+  #uncleCard{background:#241c10;border:3px solid var(--haldi);border-radius:12px;padding:16px;display:flex;gap:14px;align-items:center}
+  #uncleFace{font-size:54px;line-height:1;transition:transform .2s}
+  #uncleFace.angry{transform:rotate(-8deg) scale(1.15)}
+  #uncleInfo{flex:1}
+  #uncleInfo b{font-family:'Yatra One',cursive;font-size:19px;color:var(--haldi)}
+  #moodBar{height:10px;background:#3a2f1c;border-radius:6px;margin-top:8px;overflow:hidden}
+  #moodFill{height:100%;width:70%;background:linear-gradient(90deg,var(--red),var(--haldi),var(--green));transition:width .5s}
+  #moodLbl{font-size:11px;color:#8a7750;letter-spacing:.1em;text-transform:uppercase;margin-top:4px;display:block}
+
+  /* item card */
+  #itemCard{background:var(--enamel);border:3px solid var(--cream);border-radius:12px;padding:14px 18px;
+    display:flex;justify-content:space-between;align-items:center;box-shadow:5px 6px 0 rgba(0,0,0,.45)}
+  #itemName{font-family:'Yatra One',cursive;font-size:24px}
+  #itemQuote{text-align:right}
+  #itemQuote b{font-size:30px;font-family:'Yatra One',cursive;color:var(--haldi)}
+  #itemQuote span{font-size:11px;display:block;color:#bcd0f5;letter-spacing:.08em}
+
+  /* chat */
+  #chat{background:#0f0c07;border:3px solid #3a2f1c;border-radius:12px;padding:14px;height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+  .msg{max-width:82%;padding:10px 14px;border-radius:12px;font-size:15px;line-height:1.4;animation:pop .18s}
+  @keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+  .msg.uncle{background:#2c2113;border:1px solid #5a4a28;align-self:flex-start;border-bottom-left-radius:2px}
+  .msg.you{background:var(--enamel);align-self:flex-end;border-bottom-right-radius:2px}
+  .msg.system{background:none;border:1px dashed #5a4a28;align-self:center;color:#c9b790;font-size:13px;text-align:center}
+
+  /* input */
+  #inputRow{display:flex;gap:10px}
+  #offerIn{flex:1;font-family:'Karla';font-size:18px;font-weight:700;padding:13px 16px;border-radius:10px;
+    border:3px solid var(--haldi);background:#241c10;color:var(--cream);outline:none}
+  #offerIn:focus{border-color:var(--cream)}
+  #offerIn::placeholder{color:#8a7750;font-weight:400}
+  button{font-family:'Karla';font-weight:700;cursor:pointer;border:none;border-radius:10px;transition:transform .1s}
+  button:hover{transform:translateY(-2px)}
+  button:focus-visible{outline:3px solid var(--cream);outline-offset:2px}
+  #offerBtn{background:var(--haldi);color:var(--dark);font-size:16px;padding:0 22px}
+  #dealBtn{background:var(--green);color:#fff;font-size:15px;padding:12px}
+  #walkBtn{background:#3a2f1c;color:var(--cream);font-size:15px;padding:12px}
+  #actionRow{display:flex;gap:10px}
+  #actionRow button{flex:1}
+  button:disabled{opacity:.35;cursor:not-allowed;transform:none}
+
+  /* result */
+  #result{display:none;background:var(--haldi);color:var(--dark);border-radius:12px;padding:20px;text-align:center;
+    border:3px solid var(--red);box-shadow:6px 7px 0 rgba(0,0,0,.5)}
+  #result h2{font-family:'Yatra One',cursive;font-size:30px;margin-bottom:6px}
+  #result p{font-size:15px;margin:4px 0}
+  #result .big{font-size:44px;font-family:'Yatra One',cursive;color:var(--red)}
+  #result button{background:var(--enamel);color:var(--cream);padding:12px 20px;font-size:15px;margin:10px 6px 0}
+  #sessionBest{font-size:12px;color:#8a7750;text-align:center;letter-spacing:.08em}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>मोल-भाव</h1></div>
+<p class="sub">MOLBHAV · sabziwala uncle full mood mein hai · rate gira ke dikhao</p>
+
+<div id="game">
+  <div id="uncleCard">
+    <div id="uncleFace">👨🏽‍🌾</div>
+    <div id="uncleInfo">
+      <b id="uncleName">Ramesh Bhaiya</b>
+      <div id="moodBar"><div id="moodFill"></div></div>
+      <span id="moodLbl">mood: theek-thaak</span>
+    </div>
+  </div>
+
+  <div id="itemCard">
+    <div><div id="itemName">🍅 Tamatar</div><div style="font-size:12px;color:#bcd0f5">per kg</div></div>
+    <div id="itemQuote"><b id="quotePrice">₹80</b><span>uncle ka rate</span></div>
+  </div>
+
+  <div id="chat" aria-live="polite"></div>
+
+  <div id="inputRow">
+    <input id="offerIn" type="number" min="1" placeholder="apna bhaav likho... (₹)" aria-label="Your offer in rupees">
+    <button id="offerBtn">BOLO</button>
+  </div>
+  <div id="actionRow">
+    <button id="dealBtn">🤝 DEAL PAKKI</button>
+    <button id="walkBtn">🚶 chalta hoon...</button>
+  </div>
+
+  <div id="result">
+    <h2 id="resTitle">SAUDA HO GAYA!</h2>
+    <p class="big" id="resDiscount">23% OFF</p>
+    <p id="resDetail"></p>
+    <p id="resVerdict"></p>
+    <button id="shareBtn">📋 score copy karo</button>
+    <button id="againBtn">🔁 nayi sabzi</button>
+  </div>
+  <p id="sessionBest">session best: —</p>
+</div>
+
+<script>
+/* ================= data ================= */
+const ITEMS=[
+  {n:'🍅 Tamatar',fair:40},{n:'🥔 Aloo',fair:25},{n:'🧅 Pyaaz',fair:35},
+  {n:'🥭 Aam (Dussehri)',fair:90},{n:'🍆 Baingan',fair:30},{n:'🌶️ Hari Mirch',fair:60},
+  {n:'🥬 Palak',fair:20},{n:'🥒 Kheera',fair:28},{n:'🍋 Nimbu',fair:70},{n:'🥕 Gajar',fair:38}
+];
+const UNCLES=['Ramesh Bhaiya','Suresh Chacha','Bablu Bhaiya','Munna Uncle','Girdhari Lal'];
+
+const L={
+  open:[
+    "Aaiye aaiye! Ekdum fresh maal hai, subah mandi se aaya hai!",
+    "Madam/Sir, aaj ka special — haath lagake dekho, ekdum first class!",
+    "Aao aao, boni ka time hai, accha rate lagaunga!"
+  ],
+  insult:[ /* offer < 40% of quote */
+    "ARRE! Itne mein toh mitti bhi nahi milti aajkal!",
+    "Bhaiya mazaak mat karo, mandi ka rate pata hai kya?",
+    "Itna toh mera rickshaw wala bhi nahi leta! Aage badho!",
+    "Yeh 2004 nahi hai sahab. Petrol ka rate dekha hai?"
+  ],
+  low:[ /* 40-65% */
+    "Nahi nahi, itne mein toh meri lagat bhi nahi nikalti.",
+    "Aap bhi kya yaad rakhoge... par itna kam? Na baba.",
+    "Thoda upar aao, main thoda neeche aata hoon.",
+    "Iss rate pe toh bhaiya nuksaan ho jayega mera."
+  ],
+  close:[ /* 65-85% */
+    "Hmm... chalo aapke liye thoda kam kar deta hoon. FINAL —",
+    "Acha suno, sirf aapke liye — kisi ko batana mat —",
+    "Aap purane grahak lagte ho... theek hai, last rate —",
+    "Arre aap toh dil ke acche ho. Chalo —"
+  ],
+  fake_walk:[
+    "Bas bhaiya, isse kam NAHI hoga. Lena hai toh lo, warna aage Girdhari ke thele pe try karo. 😤",
+    "Nahi ji nahi. Main dukaan band kar dunga par isse kam nahi. FINAL matlab FINAL."
+  ],
+  accept:[
+    "Chalo theek hai... le jao. Aap jeet gaye aaj. 😮‍💨",
+    "Uff... deal pakki. Par kisi ko rate mat batana!",
+    "Le jao le jao... aaj boni aapke naam."
+  ],
+  deal_high:[
+    "Bahut badhiya! Aapse baat karke maza aa gaya! 😁",
+    "Deal pakki! Thaili laaye ho ya dun?"
+  ],
+  broke_patience:[
+    "Bas ji bas! Meri bhi izzat hai. Aage jao. 🙏 (uncle ne mooh pher liya)",
+    "Time waste mat karo bhai, line lagi hai peeche. NEXT!"
+  ]
+};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+
+/* ================= state ================= */
+let S={};
+function newRound(){
+  const item=pick(ITEMS);
+  const quote=Math.round(item.fair*(1.7+Math.random()*.5)/5)*5;
+  S={item,quote,cur:quote,fair:item.fair,
+     floor:Math.round(item.fair*(1.02+Math.random()*.13)), /* his true walk-away */
+     patience:5+Math.floor(Math.random()*3), rounds:0, mood:70,
+     fakeWalkUsed:false, done:false};
+  document.getElementById('uncleName').textContent=pick(UNCLES);
+  document.getElementById('itemName').textContent=item.n;
+  document.getElementById('quotePrice').textContent='₹'+quote;
+  document.getElementById('chat').innerHTML='';
+  document.getElementById('result').style.display='none';
+  document.getElementById('offerIn').value='';
+  setButtons(true);
+  say('uncle',pick(L.open)+` ${item.n.slice(2)} sirf ₹${quote} kilo!`);
+  setMood(70,'theek-thaak');
+}
+function say(who,txt){
+  const c=document.getElementById('chat'),d=document.createElement('div');
+  d.className='msg '+who;d.textContent=txt;c.appendChild(d);c.scrollTop=c.scrollHeight;
+}
+function setMood(v,lbl){
+  S.mood=Math.max(0,Math.min(100,v));
+  document.getElementById('moodFill').style.width=S.mood+'%';
+  document.getElementById('moodLbl').textContent='mood: '+(lbl||(S.mood>60?'khush':S.mood>35?'garam ho raha hai':'BHADKA HUA'));
+  const f=document.getElementById('uncleFace');
+  f.textContent=S.mood>60?'👨🏽‍🌾':S.mood>35?'😠':'🤬';
+  f.classList.toggle('angry',S.mood<=35);
+}
+function setButtons(on){
+  ['offerBtn','dealBtn','walkBtn'].forEach(id=>document.getElementById(id).disabled=!on);
+  document.getElementById('offerIn').disabled=!on;
+}
+
+/* ================= the haggle brain ================= */
+function offer(){
+  if(S.done)return;
+  const v=parseInt(document.getElementById('offerIn').value,10);
+  if(!v||v<1)return;
+  document.getElementById('offerIn').value='';
+  say('you','₹'+v+' lagao bhaiya');
+  S.rounds++;
+  const r=v/S.cur;
+
+  setTimeout(()=>{
+    /* he accepts anything >= his current asking */
+    if(v>=S.cur){finish(v,'deal_high');return;}
+    /* offer at/above his secret floor and he's tired or it's close */
+    if(v>=S.floor&&(S.rounds>=3||v>=S.cur*.9)){finish(v,'accept');return;}
+
+    if(S.rounds>S.patience){ S.done=true;setButtons(false);
+      say('uncle',pick(L.broke_patience));
+      say('system','uncle ne baat band kar di. koi sauda nahi hua. 🥀');
+      showResult(null);return;}
+
+    if(r<.4){ setMood(S.mood-22);say('uncle',pick(L.insult));
+      /* he barely budges */
+      S.cur=Math.max(S.floor+8,Math.round(S.cur*.97));
+    }else if(r<.65){ setMood(S.mood-8);
+      S.cur=Math.max(S.floor+4,Math.round((S.cur+v)/2*1.06));
+      say('uncle',pick(L.low)+` ₹${S.cur} lagao, bas.`);
+    }else{ /* close! maybe fake walk-away */
+      if(!S.fakeWalkUsed&&v<S.floor&&Math.random()<.6){
+        S.fakeWalkUsed=true;setMood(S.mood-5);
+        say('uncle',pick(L.fake_walk));
+        say('system','(psst... yeh natak lag raha hai. ek aur offer maaro.)');
+      }else{
+        setMood(S.mood+6,'maan raha hai...');
+        S.cur=Math.max(S.floor,Math.round((S.cur+v)/2));
+        say('uncle',pick(L.close)+` ₹${S.cur}.`);
+      }
+    }
+    document.getElementById('quotePrice').textContent='₹'+S.cur;
+  },550+Math.random()*500);
+}
+function finish(price,lineKey){
+  S.done=true;setButtons(false);
+  say('uncle',pick(L[lineKey]));
+  showResult(price);
+}
+let best=null;
+function showResult(price){
+  const R=document.getElementById('result');R.style.display='block';
+  if(price==null){
+    document.getElementById('resTitle').textContent='KHAALI HAATH 🥀';
+    document.getElementById('resDiscount').textContent='0% OFF';
+    document.getElementById('resDetail').textContent='Uncle rooth gaye. Sabzi kisi aur se lena padega.';
+    document.getElementById('resVerdict').textContent='Verdict: patience bhi ek skill hai, bhai.';
+    return;
+  }
+  const disc=Math.round((1-price/S.quote)*100);
+  const vsFair=price-S.fair;
+  document.getElementById('resTitle').textContent='SAUDA HO GAYA! 🤝';
+  document.getElementById('resDiscount').textContent=disc+'% OFF';
+  document.getElementById('resDetail').textContent=
+    `Quote ₹${S.quote} → Final ₹${price} · Mandi fair rate tha ₹${S.fair}`;
+  document.getElementById('resVerdict').textContent=
+    vsFair<=2?'Verdict: LEGENDARY. Aap mandi ke sher ho. 🦁':
+    vsFair<=10?'Verdict: solid bargaining. Dadi ji proud hongi. 👵':
+    disc>=15?'Verdict: theek hai... par uncle andar se hass rahe hain. 😏':
+    'Verdict: bhaiya aapko dekh ke uncle ka din ban gaya. 💸';
+  if(best==null||disc>best){best=disc;
+    document.getElementById('sessionBest').textContent='session best: '+best+'% off';}
+  S.lastShare=`MolBhav 🥬 — maine ${S.item.n.slice(2)} pe ${disc}% discount nikala (₹${S.quote}→₹${price})! Sabziwale ko hara ke dikhao: [link]`;
+}
+document.getElementById('shareBtn').addEventListener('click',()=>{
+  navigator.clipboard?.writeText(S.lastShare||'MolBhav 🥬').then(()=>{
+    document.getElementById('shareBtn').textContent='✅ copied!';
+    setTimeout(()=>document.getElementById('shareBtn').textContent='📋 score copy karo',1500);
+  });
+});
+document.getElementById('againBtn').addEventListener('click',newRound);
+document.getElementById('offerBtn').addEventListener('click',offer);
+document.getElementById('offerIn').addEventListener('keydown',e=>{if(e.key==='Enter')offer();});
+document.getElementById('dealBtn').addEventListener('click',()=>{ if(!S.done)finish(S.cur,'deal_high'); });
+document.getElementById('walkBtn').addEventListener('click',()=>{
+  if(S.done)return;
+  /* real walk-away: sometimes he calls you back with a better rate! */
+  if(S.cur>S.floor+5&&Math.random()<.65){
+    S.cur=Math.max(S.floor,Math.round(S.cur*.88));
+    say('you','(jaane lage...)');
+    setTimeout(()=>{say('uncle',`Arre arre suniye toh! ₹${S.cur} FINAL. Ab toh ruk jao! 😅`);
+      document.getElementById('quotePrice').textContent='₹'+S.cur;setMood(S.mood-4);},700);
+  }else{S.done=true;setButtons(false);
+    say('you','(chal diye)');say('uncle','Theek hai ji, Ram Ram. 🙏');
+    showResult(null);}
+});
+newRound();
+</script>
+</body>
+</html>

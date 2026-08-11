@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Petrol — ₹500.00 pe roko</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c;--lcd:#9ef01a}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+    background-image:radial-gradient(circle at 50% -10%, #2a2115 0%, var(--dark) 60%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+  a.back{position:fixed;top:16px;left:16px;color:var(--haldi);font-size:13px;text-decoration:none}
+  .brand{background:var(--enamel);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;
+    transform:rotate(-1deg);box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:4px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(26px,5vw,40px);text-shadow:2px 2px 0 var(--red)}
+  .sub{color:#c9b790;font-size:12px;margin-bottom:22px}
+
+  #pump{background:#b8332a;border:5px solid #7a1f18;border-radius:18px 18px 8px 8px;padding:22px 26px;
+    width:min(360px,92vw);box-shadow:0 18px 50px rgba(0,0,0,.55), inset 0 4px 0 #d8564d}
+  #screen{background:#0a1a05;border:4px solid #333;border-radius:8px;padding:16px 10px;margin-bottom:16px}
+  #amount{font-family:'Courier New',monospace;font-weight:700;font-size:clamp(38px,9vw,54px);color:var(--lcd);
+    letter-spacing:2px;text-shadow:0 0 12px rgba(158,240,26,.5)}
+  #litres{font-family:'Courier New',monospace;font-size:14px;color:#6fae12;margin-top:4px}
+  #target{font-size:12px;color:#ffd9d6;letter-spacing:.2em;margin-bottom:14px}
+  #target b{color:#fff;font-size:15px}
+  #stopBtn{width:100%;font-family:'Yatra One',cursive;font-size:24px;background:var(--haldi);color:var(--dark);
+    border:4px solid #7a5a0a;border-radius:12px;padding:16px;cursor:pointer;box-shadow:0 6px 0 #7a5a0a;transition:transform .05s}
+  #stopBtn:active{transform:translateY(4px);box-shadow:0 2px 0 #7a5a0a}
+  #stopBtn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+  #verdict{margin-top:20px;min-height:64px;font-size:16px;max-width:420px}
+  #verdict b{font-family:'Yatra One',cursive;font-size:26px;color:var(--haldi);display:block;margin-bottom:4px}
+  #stats{margin-top:10px;font-size:12px;color:#8a7750;letter-spacing:.08em}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>पेट्रोल</h1></div>
+<p class="sub">PETROL · tank khali hai · "BAS BHAIYA" bolna sabse bada skill hai</p>
+
+<div id="pump">
+  <div id="screen">
+    <div id="amount">₹000.00</div>
+    <div id="litres">0.000 L · ₹94.72/L</div>
+  </div>
+  <div id="target">TARGET: <b>₹500.00 EXACT</b></div>
+  <button id="stopBtn">⛽ BHARO</button>
+</div>
+<div id="verdict"></div>
+<p id="stats">attempts: 0 · session best: —</p>
+
+<script>
+const RATE=94.72;
+let amt=0,running=false,raf=null,last=0,attempts=0,best=null;
+let AC=null,master=null,pumpGain=null;
+function ctx(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+  master=AC.createGain();master.gain.value=.85;master.connect(AC.destination);}return AC;}
+function noise(sec=2){const a=ctx(),b=a.createBuffer(1,a.sampleRate*sec,a.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b;}
+function pumpSound(on){
+  const a=ctx();
+  if(on){const src=a.createBufferSource();src.buffer=noise(3);src.loop=true;
+    const bp=a.createBiquadFilter();bp.type='bandpass';bp.frequency.value=700;bp.Q.value=.8;
+    pumpGain=a.createGain();pumpGain.gain.value=.08;
+    src.connect(bp);bp.connect(pumpGain);pumpGain.connect(master);src.start();
+    pumpGain.__src=src;
+  }else if(pumpGain){try{pumpGain.__src.stop()}catch(e){}pumpGain=null;}
+}
+function ding(good){
+  const a=ctx(),t=a.currentTime,o=a.createOscillator(),g=a.createGain();
+  o.type='sine';o.frequency.value=good?1200:300;
+  g.gain.setValueAtTime(.2,t);g.gain.exponentialRampToValueAtTime(.001,t+.4);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+.45);
+  if(good){const o2=a.createOscillator(),g2=a.createGain();
+    o2.type='sine';o2.frequency.value=1600;
+    g2.gain.setValueAtTime(.15,t+.12);g2.gain.exponentialRampToValueAtTime(.001,t+.5);
+    o2.connect(g2);g2.connect(master);o2.start(t+.12);o2.stop(t+.55);}
+}
+function render(){
+  document.getElementById('amount').textContent='₹'+amt.toFixed(2).padStart(6,'0');
+  document.getElementById('litres').textContent=(amt/RATE).toFixed(3)+' L · ₹'+RATE+'/L';
+}
+function loop(ts){
+  if(!running)return;
+  if(!last)last=ts;
+  const dt=(ts-last)/1000;last=ts;
+  /* speed curve: fast at first, sneaky-fast near 500 (the trap!) */
+  const speed=amt<420?95:amt<480?60:78+Math.sin(ts/90)*22; /* jittery near target */
+  amt+=speed*dt;
+  if(amt>=599.99){amt=599.99;stop(true);}
+  render();
+  raf=requestAnimationFrame(loop);
+}
+function stop(overflow){
+  running=false;cancelAnimationFrame(raf);pumpSound(false);
+  attempts++;
+  const diff=Math.abs(500-amt);
+  const v=document.getElementById('verdict');
+  let title,line,good=false;
+  if(overflow){title='TANK OVERFLOW 🫠';line='₹599.99. bhaiya ne aapki taraf dekha. bas dekha.';}
+  else if(diff===0){title='₹500.00 SHARP!!! 🏆';line='machine ruk gayi. bhaiya ne salute kiya. yeh kahani mohalle mein sunayi jayegi.';good=true;}
+  else if(diff<=0.5){title='LEGENDARY REFLEX 🦾';line=`sirf ₹${diff.toFixed(2)} ka fark. bhaiya: "aap roz aaya karo."`;good=true;}
+  else if(diff<=3){title='bahut kareeb! 😤';line=`₹${amt.toFixed(2)} — ${diff.toFixed(2)} se chook gaye. change ka jhanjhat ho gaya.`;}
+  else if(amt<500){title='darr gaye? 🐔';line=`₹${amt.toFixed(2)} pe hi rok diya. himmat rakho, meter kaatta nahi.`;}
+  else{title='overshoot 💸';line=`₹${amt.toFixed(2)}. ab bhaiya ₹${(amt-500).toFixed(2)} ka chutta dhoondh rahe hain. sab aapko dekh rahe hain.`;}
+  v.innerHTML=`<b>${title}</b>${line}`;
+  ding(good);
+  if(best===null||diff<best){best=diff;}
+  document.getElementById('stats').textContent=
+    `attempts: ${attempts} · session best: ₹${best.toFixed(2)} door`;
+  const b=document.getElementById('stopBtn');
+  b.textContent='⛽ PHIR BHARO';b.dataset.mode='start';
+}
+document.getElementById('stopBtn').addEventListener('click',function(){
+  ctx().resume();
+  if(!running){ /* start */
+    amt=0;last=0;running=true;render();
+    this.textContent='🛑 BAS BHAIYA!!';this.dataset.mode='stop';
+    document.getElementById('verdict').innerHTML='';
+    pumpSound(true);
+    raf=requestAnimationFrame(loop);
+  }else stop(false);
+});
+render();
+</script>
+</body>
+</html>

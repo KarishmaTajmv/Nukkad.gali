@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>padhai-kar-lo.wtf — lofi beats to get scolded to</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#fdf6e3; --rule:#bcd4e6; --margin:#e8a0a0;
+    --ink:#26364a; --pencil:#1f4fa0; --red:#c0392b; --green:#2e7d32;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:'Karla',sans-serif;color:var(--ink);min-height:100vh;
+    background:var(--paper);
+    background-image:
+      linear-gradient(90deg, transparent 56px, var(--margin) 56px, var(--margin) 58px, transparent 58px),
+      repeating-linear-gradient(var(--paper) 0 30px, var(--rule) 30px 31px);
+    display:flex;flex-direction:column;align-items:center;padding:40px 16px 60px;
+    overflow-x:hidden;
+  }
+  body.shake{animation:shake .45s}
+  @keyframes shake{0%,100%{transform:translate(0)}20%{transform:translate(-8px,3px)}40%{transform:translate(7px,-4px)}60%{transform:translate(-6px,2px)}80%{transform:translate(5px,-2px)}}
+
+  h1{font-family:'Kalam',cursive;font-weight:700;font-size:clamp(30px,6vw,50px);color:var(--pencil);transform:rotate(-.8deg);text-align:center}
+  .sub{font-size:14px;color:#6b7a8c;margin:6px 0 30px;text-align:center}
+
+  /* walkman card */
+  #walkman{
+    background:#fffdf5;border:2px solid var(--ink);border-radius:14px;
+    box-shadow:5px 5px 0 var(--ink);padding:22px;width:min(440px,94vw);text-align:center;position:relative;
+  }
+  #nowPlaying{font-family:'Kalam',cursive;font-size:19px;color:var(--pencil);min-height:26px}
+  #eq{display:flex;gap:4px;justify-content:center;align-items:flex-end;height:38px;margin:14px 0}
+  #eq div{width:8px;background:var(--green);border-radius:3px 3px 0 0;animation:bounce 0.6s infinite alternate}
+  #eq div:nth-child(2){animation-delay:.1s}#eq div:nth-child(3){animation-delay:.2s}
+  #eq div:nth-child(4){animation-delay:.05s}#eq div:nth-child(5){animation-delay:.15s}
+  @keyframes bounce{from{height:6px}to{height:34px}}
+  #eq.paused div{animation-play-state:paused;height:5px;background:#b9c3cc}
+
+  #playBtn{
+    font-family:'Kalam',cursive;font-weight:700;font-size:20px;color:#fff;background:var(--pencil);
+    border:2px solid var(--ink);border-radius:10px;box-shadow:3px 3px 0 var(--ink);
+    padding:12px 26px;cursor:pointer;transition:transform .1s;
+  }
+  #playBtn:hover{transform:translate(-1px,-1px)}
+  #playBtn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+  #playBtn:focus-visible{outline:3px solid var(--red);outline-offset:3px}
+
+  /* guilt meter */
+  #meterWrap{margin-top:26px;width:min(440px,94vw)}
+  #meterWrap .lbl{display:flex;justify-content:space-between;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#6b7a8c;margin-bottom:6px}
+  #meter{height:20px;border:2px solid var(--ink);border-radius:12px;background:#fff;overflow:hidden}
+  #meterFill{height:100%;width:0%;background:linear-gradient(90deg,#f4c542,#e67e22,var(--red));transition:width .6s}
+
+  /* stats */
+  #stats{display:flex;gap:14px;margin-top:22px;flex-wrap:wrap;justify-content:center}
+  .stat{background:#fffdf5;border:2px solid var(--ink);border-radius:10px;box-shadow:3px 3px 0 var(--ink);padding:10px 16px;text-align:center}
+  .stat b{font-size:22px;font-family:'Kalam',cursive;color:var(--red);display:block}
+  .stat span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#6b7a8c}
+
+  /* MOM OVERLAY */
+  #momOverlay{
+    position:fixed;inset:0;background:rgba(38,20,10,.86);display:none;
+    align-items:center;justify-content:center;flex-direction:column;z-index:50;padding:20px;text-align:center;
+  }
+  #momOverlay.on{display:flex}
+  #momLine{
+    font-family:'Kalam',cursive;font-weight:700;font-size:clamp(28px,6vw,54px);color:#ffe9b0;
+    max-width:800px;line-height:1.25;text-shadow:3px 3px 0 #000;
+  }
+  #momSub{color:#e8b790;font-size:15px;margin-top:14px}
+  #sorryBtn{
+    margin-top:34px;font-family:'Kalam',cursive;font-weight:700;font-size:22px;
+    background:#ffe9b0;color:#4a2410;border:3px solid #4a2410;border-radius:12px;
+    padding:14px 30px;cursor:pointer;box-shadow:4px 4px 0 #000;transition:transform .1s;
+  }
+  #sorryBtn:hover{transform:scale(1.04)}
+  #sorryBtn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+
+  footer{margin-top:34px;font-size:12px;color:#8a97a5;text-align:center}
+  @media (prefers-reduced-motion:reduce){#eq div{animation:none;height:16px}body.shake{animation:none}}
+</style>
+</head>
+<body>
+<h1>padhai-kar-lo.wtf</h1>
+<p class="sub">lofi beats to relax/study to… until mummy finds out 🎧🥲</p>
+
+<div id="walkman">
+  <div id="nowPlaying">▸ press play, beta</div>
+  <div id="eq" class="paused"><div></div><div></div><div></div><div></div><div></div></div>
+  <button id="playBtn">▶ chill music chalao</button>
+</div>
+
+<div id="meterWrap">
+  <div class="lbl"><span>😌 sukoon</span><span>guilt meter</span><span>😰 sharma ji ka beta</span></div>
+  <div id="meter"><div id="meterFill"></div></div>
+</div>
+
+<div id="stats">
+  <div class="stat"><b id="stInterrupt">0</b><span>interruptions</span></div>
+  <div class="stat"><b id="stPeace">0s</b><span>peace enjoyed</span></div>
+  <div class="stat"><b id="stSorry">0</b><span>"sorry mummy"</span></div>
+</div>
+
+<footer>disclaimer: mummy is always right · no actual padhai was done during the making of this site</footer>
+
+<!-- MOM -->
+<div id="momOverlay" role="alertdialog" aria-live="assertive">
+  <div id="momLine"></div>
+  <div id="momSub">(music has been confiscated)</div>
+  <button id="sorryBtn">🙏 sorry mummy, padh raha hoon</button>
+</div>
+
+<script>
+/* ================= mom's greatest hits (original lines) ================= */
+const MOM_LINES=[
+  "PADHAI KAR LO!!",
+  "Beta, Sharma ji ka beta abhi bhi padh raha hai!",
+  "Yeh gaane band karo, exam sar pe hai!",
+  "Din bhar bas phone, phone, phone!",
+  "Pehle doodh khatam karo, phir gaana!",
+  "Headphone nikalo, mausi ka phone aaya hai!",
+  "Bijli ka bill tumhare gaane sunne se nahi bharega!",
+  "Itna sur lagana hai toh table pe lagao — study table pe!",
+  "Kal se subah 5 baje uthoge. KAL SE MATLAB KAL SE.",
+  "Yeh 'lo-fi' kya hota hai? Marks bhi lo-fi aa rahe hain!",
+  "Padosi wali aunty pooch rahi thi result kab hai…",
+  "Ek ghanta ho gaya 'bas 5 minute' bole hue!"
+];
+
+/* ================= audio ================= */
+let AC=null,master=null,musicGain=null,playing=false,noteTimer=null,peaceTimer=null,momTimer=null;
+let stats={interrupt:0,peace:0,sorry:0},guilt=0;
+
+function ctx(){ if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+  master=AC.createGain();master.gain.value=.9;master.connect(AC.destination);
+  musicGain=AC.createGain();musicGain.gain.value=.8;
+  const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2600;
+  musicGain.connect(lp);lp.connect(master);}return AC;}
+function noise(sec=1){const a=ctx();const b=a.createBuffer(1,a.sampleRate*sec,a.sampleRate);
+  const d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b;}
+
+/* generative lofi loop */
+const SCALE=[0,2,3,7,9],ROOT=220,TEMPO=380;
+let step=0;
+function musicTick(){
+  if(!playing)return;
+  const a=ctx(),t=a.currentTime;
+  if(Math.random()>.2){
+    const f=ROOT*Math.pow(2,SCALE[Math.floor(Math.random()*SCALE.length)]/12)*(Math.random()<.2?2:1);
+    const o=a.createOscillator(),g=a.createGain();
+    o.type='triangle';o.frequency.value=f*(1+Math.sin(t*1.3)*.003);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.18,t+.03);
+    g.gain.exponentialRampToValueAtTime(.001,t+.7);
+    o.connect(g);g.connect(musicGain);o.start(t);o.stop(t+.8);
+  }
+  if(step%4===0){const o=a.createOscillator(),g=a.createGain();
+    o.type='sine';o.frequency.setValueAtTime(120,t);o.frequency.exponentialRampToValueAtTime(48,t+.12);
+    g.gain.setValueAtTime(.3,t);g.gain.exponentialRampToValueAtTime(.001,t+.16);
+    o.connect(g);g.connect(musicGain);o.start(t);o.stop(t+.2);}
+  if(step%8===4){const src=a.createBufferSource();src.buffer=noise(.08);
+    const hp=a.createBiquadFilter();hp.type='highpass';hp.frequency.value=7000;
+    const g=a.createGain();g.gain.setValueAtTime(.05,t);g.gain.exponentialRampToValueAtTime(.001,t+.05);
+    src.connect(hp);hp.connect(g);g.connect(musicGain);src.start(t);}
+  step++; noteTimer=setTimeout(musicTick,TEMPO);
+}
+
+/* door slam + footsteps */
+function slam(){
+  const a=ctx(),t=a.currentTime;
+  const src=a.createBufferSource();src.buffer=noise(.4);
+  const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=300;
+  const g=a.createGain();g.gain.setValueAtTime(.9,t);g.gain.exponentialRampToValueAtTime(.001,t+.4);
+  src.connect(lp);lp.connect(g);g.connect(master);src.start(t);
+  const o=a.createOscillator(),og=a.createGain();
+  o.type='sine';o.frequency.setValueAtTime(80,t);o.frequency.exponentialRampToValueAtTime(30,t+.3);
+  og.gain.setValueAtTime(.7,t);og.gain.exponentialRampToValueAtTime(.001,t+.35);
+  o.connect(og);og.connect(master);o.start(t);o.stop(t+.4);
+}
+function footsteps(done){
+  const a=ctx();let i=0;
+  const stepSound=()=>{const t=a.currentTime;
+    const src=a.createBufferSource();src.buffer=noise(.1);
+    const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=250;
+    const g=a.createGain();g.gain.setValueAtTime(.25+i*.08,t);g.gain.exponentialRampToValueAtTime(.001,t+.12);
+    src.connect(lp);lp.connect(g);g.connect(master);src.start(t);
+    if(++i<4)setTimeout(stepSound,360-i*40); else setTimeout(done,300);};
+  stepSound();
+}
+/* mom's voice via SpeechSynthesis (best-effort, falls back to text-only) */
+function momSpeak(line){
+  try{
+    if(!('speechSynthesis' in window))return;
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(line);
+    const v=speechSynthesis.getVoices().find(v=>/hi[-_]IN/i.test(v.lang))||
+            speechSynthesis.getVoices().find(v=>/en[-_]IN/i.test(v.lang));
+    if(v)u.voice=v; u.lang=v?v.lang:'hi-IN';
+    u.rate=1.05;u.pitch=1.3;u.volume=1;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ================= mom logic ================= */
+function scheduleMom(){
+  clearTimeout(momTimer);
+  const delay=9000+Math.random()*14000; /* she strikes in 9–23s */
+  momTimer=setTimeout(momArrives,delay);
+}
+function momArrives(){
+  if(!playing)return;
+  /* duck the music hard */
+  const a=ctx();musicGain.gain.cancelScheduledValues(a.currentTime);
+  musicGain.gain.setTargetAtTime(.04,a.currentTime,.08);
+  footsteps(()=>{
+    slam();
+    document.body.classList.add('shake');
+    setTimeout(()=>document.body.classList.remove('shake'),500);
+    const line=MOM_LINES[Math.floor(Math.random()*MOM_LINES.length)];
+    document.getElementById('momLine').textContent=line;
+    document.getElementById('momOverlay').classList.add('on');
+    momSpeak(line);
+    stats.interrupt++; guilt=Math.min(100,guilt+14);
+    updateHUD();
+  });
+}
+document.getElementById('sorryBtn').addEventListener('click',()=>{
+  document.getElementById('momOverlay').classList.remove('on');
+  stats.sorry++; guilt=Math.max(0,guilt-4); updateHUD();
+  const a=ctx(); musicGain.gain.setTargetAtTime(.8,a.currentTime,.6);
+  document.getElementById('nowPlaying').textContent='▸ resuming… (dheere se, volume kam)';
+  scheduleMom();
+});
+
+/* ================= UI ================= */
+function updateHUD(){
+  document.getElementById('stInterrupt').textContent=stats.interrupt;
+  document.getElementById('stPeace').textContent=stats.peace+'s';
+  document.getElementById('stSorry').textContent=stats.sorry;
+  document.getElementById('meterFill').style.width=guilt+'%';
+}
+document.getElementById('playBtn').addEventListener('click',function(){
+  const a=ctx();a.resume();
+  if(!playing){
+    playing=true;musicTick();scheduleMom();
+    this.textContent='⏸ pause (jaldi, koi aa raha hai)';
+    document.getElementById('nowPlaying').textContent='♪ now playing: "Sukoon (Original Lo-fi Mix)"';
+    document.getElementById('eq').classList.remove('paused');
+    peaceTimer=setInterval(()=>{ if(playing&&!document.getElementById('momOverlay').classList.contains('on')){
+      stats.peace++; guilt=Math.max(0,guilt-.3); updateHUD();}},1000);
+  }else{
+    playing=false;clearTimeout(noteTimer);clearTimeout(momTimer);clearInterval(peaceTimer);
+    this.textContent='▶ chill music chalao';
+    document.getElementById('nowPlaying').textContent='▸ paused (smart move)';
+    document.getElementById('eq').classList.add('paused');
+  }
+});
+/* preload voices */
+if('speechSynthesis' in window)speechSynthesis.getVoices();
+updateHUD();
+</script>
+</body>
+</html>

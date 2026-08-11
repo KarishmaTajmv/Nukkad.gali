@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seeti — bas intezaar karo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--enamel:#12409e;--red:#d5342b;--haldi:#f2b31c;--cream:#f6ead3;--dark:#17120c}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Karla',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;
+    background-image:radial-gradient(circle at 50% 110%, #34240f 0%, var(--dark) 55%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow:hidden}
+  a.back{position:fixed;top:16px;left:16px;color:var(--haldi);font-size:13px;text-decoration:none}
+  .brand{background:var(--enamel);border:4px solid var(--haldi);border-radius:6px;padding:8px 26px;
+    transform:rotate(-1deg);box-shadow:5px 6px 0 rgba(0,0,0,.5);margin-bottom:8px}
+  .brand h1{font-family:'Yatra One',cursive;font-size:clamp(28px,5vw,42px);text-shadow:2px 2px 0 var(--red)}
+  .sub{color:#c9b790;font-size:13px;margin-bottom:26px;text-align:center}
+
+  #count{font-family:'Yatra One',cursive;font-size:clamp(60px,14vw,120px);color:var(--haldi);line-height:1;
+    text-shadow:4px 4px 0 var(--red);margin-bottom:4px}
+  #countLbl{font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:#8a7750;margin-bottom:26px}
+
+  /* cooker */
+  #kitchen{position:relative;width:min(340px,80vw)}
+  svg{width:100%;display:block}
+  .steamJet{fill:none;stroke:#efe6d2;stroke-width:5;stroke-linecap:round;opacity:0}
+  .whistling .steamJet{animation:jet .5s infinite}
+  @keyframes jet{0%{opacity:0;transform:translateY(0)}30%{opacity:.9}100%{opacity:0;transform:translateY(-40px)}}
+  .idleSteam{fill:none;stroke:#cfc4a8;stroke-width:3;stroke-linecap:round;opacity:0;animation:idle 5s infinite}
+  .idleSteam.d2{animation-delay:2.5s}
+  @keyframes idle{0%{opacity:0;transform:translateY(0)}20%{opacity:.35}90%{opacity:.05}100%{opacity:0;transform:translateY(-30px)}}
+  .flame{transform-origin:center bottom;animation:lick .3s infinite alternate}
+  @keyframes lick{from{transform:scaleY(1)}to{transform:scaleY(1.15) scaleX(.93)}}
+  .whistling #weight{animation:rattle .09s infinite}
+  @keyframes rattle{0%{transform:translate(0)}25%{transform:translate(-1.5px,-2px) rotate(-3deg)}75%{transform:translate(1.5px,-1px) rotate(3deg)}}
+
+  #msg{margin-top:26px;font-size:15px;color:#c9b790;text-align:center;min-height:44px;max-width:420px;font-style:italic}
+  #startBtn{margin-top:18px;font-family:'Yatra One',cursive;font-size:20px;background:var(--red);color:var(--cream);
+    border:3px solid var(--haldi);border-radius:10px;padding:12px 30px;cursor:pointer;box-shadow:4px 5px 0 rgba(0,0,0,.5);transition:transform .1s}
+  #startBtn:hover{transform:translateY(-2px)}
+  #startBtn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+  #hint{margin-top:12px;font-size:11px;color:#6b5b3a;letter-spacing:.1em}
+  @media (prefers-reduced-motion:reduce){.flame,.idleSteam{animation:none}}
+</style>
+</head>
+<body>
+<a class="back" href="nukkad.html">← nukkad</a>
+<div class="brand"><h1>सीटी</h1></div>
+<p class="sub">SEETI · daal chadhi hai · aap bas intezaar karo</p>
+
+<div id="count">0</div>
+<div id="countLbl">seetiyan aaj tak</div>
+
+<div id="kitchen">
+  <svg viewBox="0 0 340 300" aria-label="Pressure cooker on a stove">
+    <!-- steam -->
+    <path class="steamJet" d="M170 66 q6 -14 -2 -26 q-6 -10 2 -22"/>
+    <path class="steamJet" d="M162 70 q-8 -12 0 -24" style="animation-delay:.15s"/>
+    <path class="steamJet" d="M178 70 q8 -12 0 -24" style="animation-delay:.28s"/>
+    <path class="idleSteam" d="M170 66 q5 -10 -2 -20"/>
+    <path class="idleSteam d2" d="M175 66 q-5 -10 2 -20"/>
+    <!-- weight -->
+    <g id="weight">
+      <rect x="160" y="70" width="20" height="14" rx="3" fill="#8f98a3"/>
+      <rect x="165" y="62" width="10" height="10" rx="2" fill="#aab3bd"/>
+    </g>
+    <!-- lid -->
+    <ellipse cx="170" cy="96" rx="92" ry="18" fill="#b9c2cc"/>
+    <path d="M110 92 q60 -18 120 0" stroke="#8f98a3" stroke-width="4" fill="none"/>
+    <rect x="252" y="84" width="46" height="12" rx="6" fill="#1f1a12"/><!-- lid handle -->
+    <!-- body -->
+    <path d="M84 96 h172 l-10 96 q-76 20 -152 0 z" fill="#aab3bd"/>
+    <path d="M84 96 h172 l-2 20 h-168 z" fill="#98a1ac"/>
+    <rect x="40" y="120" width="52" height="14" rx="7" fill="#1f1a12"/><!-- side handle -->
+    <!-- stove -->
+    <rect x="60" y="212" width="220" height="16" rx="6" fill="#2b2b2b"/>
+    <rect x="80" y="228" width="180" height="34" rx="6" fill="#1c1c1c"/>
+    <circle cx="120" cy="245" r="7" fill="#3a3a3a"/><circle cx="220" cy="245" r="7" fill="#3a3a3a"/>
+    <!-- flames -->
+    <g>
+      <path class="flame" d="M140 210 q3 -12 8 -15 q2 7 6 10 q3 4 -2 5 z" fill="#4aa3ff"/>
+      <path class="flame" d="M165 210 q3 -13 8 -16 q2 7 6 10 q3 4 -2 6 z" fill="#4aa3ff" style="animation-delay:.12s"/>
+      <path class="flame" d="M190 210 q3 -12 8 -15 q2 7 6 10 q3 4 -2 5 z" fill="#4aa3ff" style="animation-delay:.2s"/>
+    </g>
+  </svg>
+</div>
+
+<p id="msg">stove pe daal hai. seeti kab bajegi? kisi ko nahi pata. yahi toh baat hai.</p>
+<button id="startBtn">🔥 gas jalao</button>
+<p id="hint">tip: tab kholke chhod do. seeti khud bulayegi.</p>
+
+<script>
+let AC=null,master=null,on=false,count=0,simmerNode=null;
+const MILESTONES={
+  1:"pehli seeti! daal ne haazri laga di. 🫡",
+  3:"teen seeti = mummy standard. daal technically ready hai.",
+  5:"paanch seeti... ab yeh sirf zid hai.",
+  8:"aath?! daal ab daal nahi rahi. woh kuch aur ban chuki hai.",
+  10:"das seeti. aap is website ke asli sadhu ho. 🧘",
+  15:"pandrah. gas ka bill aapke naam samarpit hai.",
+  20:"BEES SEETI. cooker aapko personally jaanta hai ab."
+};
+const IDLE_MSGS=[
+  "daal soch rahi hai...",
+  "andar kuch ho raha hai. bharosa rakho.",
+  "yeh intezaar hi toh asli recipe hai.",
+  "kahin jaana mat. ya jao. seeti ko farak nahi padta.",
+  "pressure ban raha hai. (cooker mein. aap chill karo.)",
+  "kya aapne kabhi socha hai — seeti kiske liye bajti hai? aapke liye."
+];
+function ctx(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+  master=AC.createGain();master.gain.value=.9;master.connect(AC.destination);}return AC;}
+function noise(sec=2){const a=ctx(),b=a.createBuffer(1,a.sampleRate*sec,a.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b;}
+function startSimmer(){
+  const a=ctx(),src=a.createBufferSource();src.buffer=noise(3);src.loop=true;
+  const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=900;
+  const g=a.createGain();g.gain.value=.05;
+  const lfo=a.createOscillator(),lg=a.createGain();lfo.frequency.value=.4;lg.gain.value=.025;
+  lfo.connect(lg);lg.connect(g.gain);lfo.start();
+  src.connect(lp);lp.connect(g);g.connect(master);src.start();simmerNode=src;
+  /* bubbling blips */
+  setInterval(()=>{ if(!on)return; const t=a.currentTime;
+    const o=a.createOscillator(),og=a.createGain();
+    o.type='sine';o.frequency.setValueAtTime(300+Math.random()*250,t);
+    o.frequency.exponentialRampToValueAtTime(120,t+.08);
+    og.gain.setValueAtTime(.03,t);og.gain.exponentialRampToValueAtTime(.001,t+.09);
+    o.connect(og);og.connect(master);o.start(t);o.stop(t+.1);
+  },700);
+}
+function whistle(){
+  const a=ctx(),t=a.currentTime,dur=2.2;
+  /* the seeti: rising shriek = noise through resonant bandpass + sine */
+  const src=a.createBufferSource();src.buffer=noise(dur+0.5);
+  const bp=a.createBiquadFilter();bp.type='bandpass';bp.Q.value=18;
+  bp.frequency.setValueAtTime(1800,t);bp.frequency.linearRampToValueAtTime(2600,t+.5);
+  bp.frequency.setValueAtTime(2600,t+dur-.4);bp.frequency.linearRampToValueAtTime(1500,t+dur);
+  const g=a.createGain();
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.5,t+.4);
+  g.gain.setValueAtTime(.5,t+dur-.5);g.gain.linearRampToValueAtTime(0,t+dur);
+  src.connect(bp);bp.connect(g);g.connect(master);src.start(t);src.stop(t+dur+.1);
+  const o=a.createOscillator(),og=a.createGain();
+  o.type='sine';o.frequency.setValueAtTime(2100,t);o.frequency.linearRampToValueAtTime(2900,t+.5);
+  o.frequency.setValueAtTime(2900,t+dur-.4);o.frequency.linearRampToValueAtTime(1700,t+dur);
+  og.gain.setValueAtTime(0,t);og.gain.linearRampToValueAtTime(.12,t+.4);
+  og.gain.setValueAtTime(.12,t+dur-.5);og.gain.linearRampToValueAtTime(0,t+dur);
+  o.connect(og);og.connect(master);o.start(t);o.stop(t+dur+.1);
+  /* visuals */
+  document.getElementById('kitchen').classList.add('whistling');
+  setTimeout(()=>document.getElementById('kitchen').classList.remove('whistling'),dur*1000);
+  count++;
+  document.getElementById('count').textContent=count;
+  document.title=`(${count}) Seeti — bas intezaar karo`;
+  const m=MILESTONES[count];
+  if(m)document.getElementById('msg').textContent=m;
+}
+function scheduleWhistle(){
+  if(!on)return;
+  const wait=35000+Math.random()*55000; /* 35–90s of pure suspense */
+  setTimeout(()=>{ if(on){whistle(); scheduleWhistle();} },wait);
+}
+let idleTimer=null;
+document.getElementById('startBtn').addEventListener('click',function(){
+  const a=ctx();a.resume();
+  if(!on){ on=true; startSimmer(); scheduleWhistle();
+    this.textContent='🔥 gas jal rahi hai (band mat karo)';
+    this.disabled=true;
+    idleTimer=setInterval(()=>{ if(on&&Math.random()<.6&&!MILESTONES[count+0])
+      document.getElementById('msg').textContent=IDLE_MSGS[Math.floor(Math.random()*IDLE_MSGS.length)];
+    },14000);
+  }
+});
+</script>
+</body>
+</html>
